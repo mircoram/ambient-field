@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ambient Field — skeleton</title>
+<style>
+  :root {
+    --bg: #05070a;
+    --panel-bg: rgba(10, 14, 18, 0.74);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: rgba(235, 238, 240, 0.88);
+    --text-dim: rgba(235, 238, 240, 0.42);
+    --texture: #6be8d4;
+    --creature: #ff8a65;
+    --harmony: #f2c14e;
+    --accent: #e9edee;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: "IBM Plex Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--text);
+  }
+
+  canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .panel {
+    position: absolute;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    backdrop-filter: blur(6px);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    pointer-events: auto;
+  }
+
+  .panel h2 {
+    margin: 0 0 10px 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .top-left {
+    top: 16px;
+    left: 16px;
+    width: 230px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .row span.val {
+    color: var(--text);
+    text-transform: none;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+    line-height: 1.35;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .top-right {
+    top: 16px;
+    right: 16px;
+    width: 270px;
+    max-height: 46vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #log {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .log-entry {
+    color: var(--text-dim);
+    line-height: 1.4;
+    border-left: 2px solid rgba(255,255,255,0.12);
+    padding-left: 8px;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .log-entry .t {
+    color: var(--text);
+    opacity: 0.55;
+    margin-right: 6px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bottom {
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    width: max-content;
+  }
+
+  .ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 110px;
+  }
+
+  .ctrl label {
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--texture);
+  }
+
+  button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button:hover { background: rgba(255,255,255,0.12); }
+
+  .mode-btn.active {
+    background: rgba(255,255,255,0.16);
+    border-color: rgba(255,255,255,0.28);
+    color: var(--accent);
+  }
+
+  #soundBtn.on {
+    background: rgba(107, 232, 212, 0.18);
+    border-color: rgba(107, 232, 212, 0.4);
+    color: var(--texture);
+  }
+
+  .layer-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    text-transform: none;
+  }
+
+  .layer-toggle input {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .note {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    max-width: 230px;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .ui-hidden .panel, .ui-hidden .note { display: none; }
+
+  .hide-ui-btn {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .hide-ui-btn:hover { background: rgba(255,255,255,0.12); }
+  .ui-hidden .hide-ui-btn { opacity: 0.35; }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<button class="hide-ui-btn" id="hideUiBtn">Hide UI</button>
+
+<div class="panel top-left">
+  <h2>Field</h2>
+  <div class="row"><span>objects</span><span class="val" id="statCount">0</span></div>
+  <div class="row"><span id="statPairsLabel">active pairs</span><span class="val" id="statPairs">0</span></div>
+  <div class="row"><span>activity</span><span class="val" id="statActivity">0%</span></div>
+
+  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>trigger</span></div>
+  <div class="mode-toggle" style="display:flex; gap:6px;">
+    <button id="modeIntersectBtn" class="mode-btn active" style="flex:1; padding:6px 4px; font-size:10px;">Intersect</button>
+    <button id="modeZoneBtn" class="mode-btn" style="flex:1; padding:6px 4px; font-size:10px;">Zone</button>
+  </div>
+
+  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>theme</span></div>
+  <div class="theme-toggle" style="display:flex; flex-wrap:wrap; gap:6px;">
+    <button data-theme="base" class="mode-btn theme-btn active" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">База</button>
+    <button data-theme="nature" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Природа</button>
+    <button data-theme="space" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Космос</button>
+    <button data-theme="city" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Город</button>
+    <button data-theme="dream" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Сон</button>
+  </div>
+
+  <h2 style="margin-top:16px;">Legend (форма → звук)</h2>
+  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><circle id="legendSwatchTexture" cx="6" cy="6" r="5" fill="none" stroke="#6be8d4" stroke-width="1.4"/></svg>текстура — <span id="legendTextTexture">дождь / ветер / вода / голоса / искры / перезвон</span></div>
+  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><polygon id="legendSwatchCreature" points="6,1 11,10 1,10" fill="none" stroke="#ff8a65" stroke-width="1.4"/></svg>существо — <span id="legendTextCreature">чирик / трель / стрекот / вой / свист</span></div>
+  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><rect id="legendSwatchHarmony" x="1.5" y="1.5" width="9" height="9" fill="none" stroke="#f2c14e" stroke-width="1.4"/></svg>гармония — <span id="legendTextHarmony">пэд / тёплый / расцвет</span></div>
+  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><rect id="legendSwatchDrone" x="0.5" y="4.5" width="11" height="3" fill="none" stroke="#9aa0e8" stroke-width="1.2"/></svg>дрон — <span id="legendTextDrone">пульс / волна / сердцебиение / блуждающий</span></div>
+  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><polygon id="legendSwatchPercussion" points="6,1 10.5,6 6,11 1.5,6" fill="none" stroke="#ef6fa8" stroke-width="1.4"/></svg>перкуссия — короткий рифф из 2–5 нот</div>
+
+  <h2 style="margin-top:16px;">Layers</h2>
+  <label class="layer-toggle"><input type="checkbox" id="layerTexture" checked style="accent-color:#6be8d4;">текстура</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerCreature" checked style="accent-color:#ff8a65;">существо</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerHarmony" checked style="accent-color:#f2c14e;">гармония</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerDrone" checked style="accent-color:#9aa0e8;">дрон</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerPercussion" checked style="accent-color:#ef6fa8;">перкуссия</label>
+</div>
+
+<div class="panel top-right">
+  <h2>Events log</h2>
+  <div id="log"></div>
+</div>
+
+<div class="panel bottom">
+  <button id="soundBtn">Sound: Off</button>
+  <button id="toggleBtn">Pause</button>
+  <button id="reshuffleBtn">Reshuffle</button>
+  <div class="ctrl">
+    <label><span>Objects</span><span id="countLabel">8</span></label>
+    <input type="range" id="countSlider" min="6" max="14" step="1" value="8">
+  </div>
+  <div class="ctrl">
+    <label><span>Tempo</span><span id="tempoLabel">1.0×</span></label>
+    <input type="range" id="tempoSlider" min="100" max="400" step="10" value="100">
+  </div>
+  <div class="ctrl">
+    <label><span>Volume</span><span id="volumeLabel">80%</span></label>
+    <input type="range" id="volumeSlider" min="0" max="100" step="5" value="80">
+  </div>
+</div>
+
+<div class="note">
+  Внизу справа — точка на маленьком круге: медленно вращающийся индикатор тональности (полный оборот ≈ 5 мин). Дрон теперь один за раз — это "якорь" с мягкой пульсацией. Иногда залетает мелодия подлиннее обычной перкуссии.
+</div>
+
+<div id="debugPanel" style="display:none; position:absolute; top:16px; left:50%; transform:translateX(-50%); width:320px; max-height:80vh; overflow-y:auto; background:rgba(8,10,12,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; font-family:inherit; font-size:11px; z-index:50;">
+  <div style="color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Debug: sound list (press D to close)</div>
+  <div id="debugSoundList" style="display:flex; flex-direction:column; gap:4px;"></div>
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+
+  let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const SHAPES = ['circle', 'triangle', 'square', 'bar', 'diamond'];
+
+  // ---- theme system: 5 presets. All share the same engine (movement,
+  // priorities, master clock, chords) — a theme only swaps the palette:
+  // colors, scale, and which kinds are available per layer. 'base' is
+  // the exact current build, frozen, as the control/reference preset.
+  const THEMES = {
+    base: {
+      label: 'База',
+      colors: { circle: '#6be8d4', triangle: '#ff8a65', square: '#f2c14e', bar: '#9aa0e8', diamond: '#ef6fa8' },
+      scale: [110, 123.47, 138.59, 164.81, 185.0, 220, 246.94, 277.18, 329.63, 369.99, 440],
+      chordOffsets: [0, 2, 4, 5, -3],
+      textureContinuous: ['rain', 'wind', 'water', 'voices'],
+      textureGranular: ['sparkle', 'shimmer'],
+      harmonyContinuous: ['pad', 'warm', 'bloom'],
+      creature: ['chirp', 'trill', 'chatter', 'howl', 'whistle'],
+      drone: ['pulse', 'swell', 'heartbeat', 'wander']
+    },
+    nature: {
+      label: 'Природа',
+      colors: { circle: '#7ed957', triangle: '#d9a066', square: '#f2c14e', bar: '#4a7c59', diamond: '#e8875a' },
+      scale: [110, 123.47, 138.59, 164.81, 185.0, 220, 246.94, 277.18, 329.63, 369.99, 440],
+      chordOffsets: [0, 2, 4, 5, -3],
+      textureContinuous: ['rain', 'wind', 'water'],
+      textureGranular: ['thunder'],
+      harmonyContinuous: ['pad', 'warm', 'bloom'],
+      creature: ['chirp', 'howl', 'whistle', 'cricket'],
+      drone: ['pulse', 'swell', 'heartbeat', 'wander']
+    },
+    space: {
+      label: 'Космос',
+      colors: { circle: '#8ecbff', triangle: '#b98eff', square: '#ffe08a', bar: '#4a5ba8', diamond: '#ff6f9c' },
+      // open/spacious intervals (4ths & 5ths, no thirds) — airier, less "cozy"
+      scale: [110, 146.83, 164.81, 220, 246.94, 293.66, 329.63, 440, 493.88, 587.33],
+      chordOffsets: [0, 2, 4, 5, -3],
+      textureContinuous: ['sub', 'voices'],
+      textureGranular: ['static', 'shimmer'],
+      harmonyContinuous: ['crystal', 'bloom'],
+      creature: ['blip', 'drift', 'whistle'],
+      drone: ['void', 'wander', 'swell']
+    },
+    city: {
+      label: 'Город',
+      colors: { circle: '#ffb454', triangle: '#ff5d5d', square: '#6ee7ff', bar: '#7a7f8c', diamond: '#d94fd1' },
+      // a couple of chromatic neighbor tones mixed in — grittier, less "clean"
+      scale: [110, 116.54, 138.59, 164.81, 174.61, 220, 233.08, 277.18, 329.63, 349.23],
+      chordOffsets: [0, 2, 4, 5, -3],
+      textureContinuous: ['traffic', 'voices'],
+      textureGranular: ['sparkle'],
+      harmonyContinuous: ['neon', 'pad'],
+      creature: ['honk', 'siren', 'chatter'],
+      drone: ['engine', 'pulse', 'heartbeat']
+    },
+    dream: {
+      label: 'Сон',
+      colors: { circle: '#c9b8ff', triangle: '#ffb8e6', square: '#b8f0e6', bar: '#8a7ca8', diamond: '#ffe8b8' },
+      // whole-tone scale — famously ambiguous/floaty, no strong home note
+      scale: [110, 123.47, 138.59, 155.56, 174.61, 196.0, 220, 246.94, 277.18, 311.13],
+      // wider, looser offsets — deliberately lets some tension through,
+      // this is the theme for testing how far the generation can drift
+      chordOffsets: [0, 1, 2, 3, 4, 5, 6, -1, -2],
+      textureContinuous: ['voices'],
+      textureGranular: ['reverse', 'shimmer'],
+      harmonyContinuous: ['cluster', 'bloom'],
+      creature: ['howl', 'trill', 'whistle'],
+      drone: ['haze', 'swell', 'wander']
+    }
+  };
+
+  let currentTheme = 'base';
+  let COLORS = { ...THEMES.base.colors };
+  let PENTATONIC = [...THEMES.base.scale];
+  let CHORD_OFFSETS = [...THEMES.base.chordOffsets];
+  let TEXTURE_CONTINUOUS_KINDS = [...THEMES.base.textureContinuous];
+  let TEXTURE_GRANULAR_KINDS = [...THEMES.base.textureGranular];
+  let TEXTURE_KINDS = [...TEXTURE_CONTINUOUS_KINDS, ...TEXTURE_GRANULAR_KINDS];
+  let HARMONY_CONTINUOUS_KINDS = [...THEMES.base.harmonyContinuous];
+  let HARMONY_ONESHOT_KINDS = [];
+  let HARMONY_KINDS = [...HARMONY_CONTINUOUS_KINDS, ...HARMONY_ONESHOT_KINDS];
+  let CREATURE_KINDS = [...THEMES.base.creature];
+  let DRONE_KINDS = [...THEMES.base.drone];
+  const PERCUSSION_KINDS = ['quick', 'walk', 'lazy', 'skip']; // shared across all themes — rhythm patterns aren't theme-bound
+
+  const SHAPE_LAYER = { circle: 'texture', square: 'harmony', triangle: 'creature', bar: 'drone', diamond: 'percussion' };
+  const LAYER_LABEL = { texture: 'текстура', harmony: 'гармония', creature: 'существо', drone: 'дрон', percussion: 'перкуссия' };
+  const KIND_LABEL = {
+    rain: 'дождь', wind: 'ветер', water: 'вода', voices: 'голоса', sparkle: 'искры', shimmer: 'перезвон',
+    thunder: 'гром', sub: 'гул', static: 'помехи', traffic: 'трафик', reverse: 'реверс',
+    pad: 'пэд', warm: 'тёплый', bloom: 'расцвет', crystal: 'кристалл', neon: 'неон', cluster: 'кластер',
+    chirp: 'чирик', trill: 'трель', chatter: 'стрекот', howl: 'вой', whistle: 'свист',
+    cricket: 'сверчок', blip: 'блип', drift: 'дрейф', honk: 'гудок', siren: 'сирена',
+    quick: 'рывок', walk: 'шаг', lazy: 'лениво', skip: 'вприпрыжку',
+    pulse: 'пульс', swell: 'волна', heartbeat: 'сердцебиение', wander: 'блуждающий', void: 'пустота',
+    engine: 'мотор', haze: 'дымка'
+  };
+
+  const TRAIL_LEN = 14;
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  // slow global "invisible equalizer": the whole scale gently transposes
+  // over several minutes, so the same material doesn't feel static forever.
+  // Only NEW notes (freshly spawned/triggered) pick up the drift — already
+  // sounding voices don't bend, which avoids any audible pitch-warp artifact.
+  const DRIFT_PERIOD_SEC = 300; // one full drift cycle ≈ 5 minutes
+  function getDriftPhase() {
+    return (performance.now() / 1000 % DRIFT_PERIOD_SEC) / DRIFT_PERIOD_SEC; // 0..1
+  }
+  function getScaleFreq(index) {
+    const semis = Math.sin(getDriftPhase() * Math.PI * 2) * 2.5; // wanders ±2.5 semitones
+    return PENTATONIC[index] * Math.pow(2, semis / 12);
+  }
+
+  // ---- master clock: the drone IS the pulse everything else locks to ----
+  // Updated live from whichever drone beat is actually sounding right now.
+  // clockBeatDuration stays 0 while no pulse-giving drone is active, and
+  // quantizeStart() falls back to immediate (unquantized) triggering then.
+  let clockBeatDuration = 0;
+  let clockLastBeatTime = 0;
+  let droneRootIndex = 0; // current chord root — a scale-degree index, not a raw index
+
+  function getChordFreq(offset) {
+    const idx = Math.max(0, Math.min(PENTATONIC.length - 1, droneRootIndex + offset));
+    return getScaleFreq(idx);
+  }
+
+  // nudges a desired start time toward the nearest 1/4-beat subdivision of
+  // the live drone tempo, with a little humanized jitter — but never makes
+  // anything wait more than ~0.35s, so it stays responsive, not sluggish
+  function quantizeStart(now) {
+    if (clockBeatDuration <= 0) return now;
+    if (now - clockLastBeatTime > clockBeatDuration * 2.2) return now; // clock's gone stale — no active pulse
+    const subDur = clockBeatDuration / 4;
+    const phase = ((now - clockLastBeatTime) % subDur + subDur) % subDur;
+    let wait = subDur - phase;
+    if (wait > 0.35) wait -= subDur;
+    wait = Math.max(0, wait);
+    return now + wait + rand(-0.012, 0.012);
+  }
+
+  class SoundObject {
+    constructor(id) {
+      this.id = id;
+      this.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      this.color = COLORS[this.shape];
+
+      // world-normalized position (0..1)
+      this.x = rand(0.08, 0.92);
+      this.y = rand(0.08, 0.92);
+      this.z = rand(0, 1); // 0 = closest/largest, 1 = farthest/smallest
+
+      // size/speed are inversely related: wide & flat vs small & fast.
+      // 'bar' shapes represent long/sustained sound, so they skew large & slow.
+      // 'circle' (texture) shapes skew smaller/faster now — they were dominating
+      // the mix by overlapping almost constantly at the old size.
+      let sizeFactor;
+      if (this.shape === 'bar') sizeFactor = rand(0.85, 1); // even bigger & slower — stays around longer
+      else if (this.shape === 'circle') sizeFactor = rand(0.1, 0.5);
+      else if (this.shape === 'diamond') sizeFactor = rand(0.1, 0.45); // quick & small, like an accent hit
+      else sizeFactor = rand(0.15, 1);
+      this.sizeFactor = sizeFactor;
+      const speedFactor = 1.15 - sizeFactor + rand(-0.1, 0.1);
+      // bar gets its own, genuinely larger scale — previously it just shared
+      // the 24-86px range everyone else uses, so "bigger" was barely visible
+      this.baseRadius = this.shape === 'bar' ? 48 + sizeFactor * 90 : 24 + sizeFactor * 62;
+
+      // ~1 in 4 objects render as a bare filled point ("meteor") instead of
+      // an outlined shape — pure visual variety, doesn't affect sound at all
+      this.visualStyle = Math.random() < 0.25 ? 'point' : 'outline';
+
+      this.textureKind = this.shape === 'circle'
+        ? TEXTURE_KINDS[Math.floor(Math.random() * TEXTURE_KINDS.length)]
+        : null;
+      this.harmonyKind = this.shape === 'square'
+        ? HARMONY_KINDS[Math.floor(Math.random() * HARMONY_KINDS.length)]
+        : null;
+      this.noteFreq = this.shape === 'square'
+        ? getChordFreq(CHORD_OFFSETS[Math.floor(Math.random() * CHORD_OFFSETS.length)])
+        : null;
+      this.creatureKind = this.shape === 'triangle'
+        ? CREATURE_KINDS[Math.floor(Math.random() * CREATURE_KINDS.length)]
+        : null;
+      this.percussionKind = this.shape === 'diamond'
+        ? PERCUSSION_KINDS[Math.floor(Math.random() * PERCUSSION_KINDS.length)]
+        : null;
+      this.droneKind = this.shape === 'bar'
+        ? DRONE_KINDS[Math.floor(Math.random() * DRONE_KINDS.length)]
+        : null;
+
+      // human-readable name for the events log, e.g. "текстура: голоса" —
+      // so it's possible to tell which specific variant is playing
+      const kindKey = this.textureKind || this.harmonyKind || this.creatureKind || this.percussionKind || this.droneKind;
+      const layer = SHAPE_LAYER[this.shape];
+      this.soundName = kindKey ? `${LAYER_LABEL[layer]}: ${KIND_LABEL[kindKey]}` : LAYER_LABEL[layer];
+
+      const angle = rand(0, Math.PI * 2);
+      const speed = (0.008 + speedFactor * 0.028); // roughly halved vs before
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.vz = rand(-0.035, 0.035);
+
+      this.rot = rand(0, Math.PI * 2);
+      this.rotSpeed = rand(-0.4, 0.4) * (1 - sizeFactor); // smaller ones spin faster
+
+      this.pulse = 0; // 0..1, decays; boosted on intersection onset
+      this.intersecting = false; // true this frame if overlapping another object (intersect mode)
+      this.presence = 0; // 0..1, continuous closeness to the zone (zone mode)
+      this.zoneActive = false; // hysteresis flag for zone-mode logging
+      this.audio = null; // Web Audio voice, attached lazily once sound is enabled
+      this.trail = [];
+    }
+
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      this.z += this.vz * dt;
+
+      // no x/y bounce anymore — objects fly past the edge and get replaced
+      // (see isOffscreen / the replacement pass in tick()). Depth (z) still
+      // bounces — that's the separate pseudo-3D "breathing" effect, not
+      // screen-edge behavior.
+      if (this.z < 0 || this.z > 1) { this.vz *= -1; this.z = Math.min(1, Math.max(0, this.z)); }
+
+      this.rot += this.rotSpeed * dt;
+      this.pulse = Math.max(0, this.pulse - dt * 1.6);
+
+      // record trail (throttled by movement, simple time-based here)
+      this.trail.push({ x: this.x, y: this.y, z: this.z });
+      if (this.trail.length > TRAIL_LEN) this.trail.shift();
+    }
+
+    // true once the object has fully cleared the visible area (with a
+    // margin equal to its own size, so it doesn't visibly "pop" at the edge)
+    isOffscreen() {
+      const p = this.screenParams();
+      const margin = p.r * 1.5;
+      return p.sx < -margin || p.sx > W + margin || p.sy < -margin || p.sy > H + margin;
+    }
+
+    // depth-based screen params
+    screenParams() {
+      const scale = lerp(1.5, 0.45, this.z);
+      const opacity = lerp(1, 0.3, this.z);
+      const highlight = triggerMode === 'zone' ? this.presence : this.pulse;
+      const r = this.baseRadius * scale * (1 + highlight * 0.35);
+      // bar shapes are visually much wider than they are tall — give them a
+      // matching (slightly conservative) hitbox so overlap feels honest.
+      const hitR = this.shape === 'bar' ? r * 1.5 : r;
+      return { sx: this.x * W, sy: this.y * H, r, hitR, opacity, scale, highlight };
+    }
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function drawShape(o) {
+    const { sx, sy, r, opacity, highlight } = o.screenParams();
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(o.rot);
+
+    if (o.visualStyle === 'point') {
+      // meteor style: a bare filled dot, no outline — visual variety,
+      // independent of shape/sound type
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = o.color;
+      ctx.shadowColor = o.color;
+      ctx.shadowBlur = 3 + highlight * 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(1.5, r * 0.18), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    // bar (drone/anchor) renders fainter on purpose — big and slow, but
+    // hazy/looming rather than solid, like something far off
+    const faintness = o.shape === 'bar' ? 0.55 : 1;
+    ctx.globalAlpha = opacity * faintness;
+    ctx.strokeStyle = o.color;
+    ctx.lineWidth = (o.shape === 'bar' ? 1 : 1.4) + highlight * 1.6;
+    ctx.shadowColor = o.color;
+    ctx.shadowBlur = 4 + highlight * 18;
+
+    if (o.shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (o.shape === 'square') {
+      ctx.strokeRect(-r * 0.8, -r * 0.8, r * 1.6, r * 1.6);
+    } else if (o.shape === 'triangle') {
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.lineTo(r * 0.9, r * 0.75);
+      ctx.lineTo(-r * 0.9, r * 0.75);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (o.shape === 'bar') {
+      ctx.strokeRect(-r * 1.9, -r * 0.28, r * 3.8, r * 0.56);
+    } else if (o.shape === 'diamond') {
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.lineTo(r * 0.72, 0);
+      ctx.lineTo(0, r);
+      ctx.lineTo(-r * 0.72, 0);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawTrail(o) {
+    const scaleBase = o.screenParams().scale;
+    ctx.save();
+    for (let i = 0; i < o.trail.length; i++) {
+      const p = o.trail[i];
+      const t = i / o.trail.length;
+      const depthScale = lerp(1.5, 0.45, p.z);
+      ctx.globalAlpha = t * 0.35 * lerp(1, 0.3, p.z);
+      ctx.fillStyle = o.color;
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, 1.6 * depthScale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawIntersectionLine(a, b) {
+    const pa = a.screenParams();
+    const pb = b.screenParams();
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(pa.sx, pa.sy);
+    ctx.lineTo(pb.sx, pb.sy);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function getZoneCenter() { return { x: W / 2, y: H / 2 }; }
+  function getZoneRadiusPx() { return H * 0.25; } // diameter = 50% of screen height, always
+
+  function drawZoneCircle() {
+    const zc = getZoneCenter(), zr = getZoneRadiusPx();
+    const glowR = zr * 2.4;
+
+    const gradient = ctx.createRadialGradient(zc.x, zc.y, 0, zc.x, zc.y, glowR);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.09)');
+    gradient.addColorStop(0.4, 'rgba(255,255,255,0.045)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(zc.x, zc.y, glowR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.setLineDash([5, 6]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(zc.x, zc.y, zr, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // rotating marker: same drift phase as the "equalizer" dial, reusing
+    // this circle as its own dial face
+    const angle = getDriftPhase() * Math.PI * 2 - Math.PI / 2;
+    const mx = zc.x + Math.cos(angle) * zr;
+    const my = zc.y + Math.sin(angle) * zr;
+    ctx.save();
+    ctx.fillStyle = '#f2c14e';
+    ctx.beginPath();
+    ctx.arc(mx, my, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // small always-visible dial (independent of trigger mode) showing the
+  // same slow drift phase — the "invisible equalizer" made visible
+  function drawEqDial() {
+    const cx = W - 46, cy = H - 46, r = 20;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    const angle = getDriftPhase() * Math.PI * 2 - Math.PI / 2;
+    const mx = cx + Math.cos(angle) * r;
+    const my = cy + Math.sin(angle) * r;
+    ctx.fillStyle = '#f2c14e';
+    ctx.beginPath();
+    ctx.arc(mx, my, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawZonePull(o, presence) {
+    if (presence < 0.12) return;
+    const zc = getZoneCenter();
+    const p = o.screenParams();
+    ctx.save();
+    ctx.globalAlpha = presence * 0.3;
+    ctx.strokeStyle = o.color;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(p.sx, p.sy);
+    ctx.lineTo(zc.x, zc.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---- state ----
+  let objects = [];
+  let nextId = 0; // ever-increasing — replacement objects always get a fresh id
+  let running = true;
+  let tempo = 1.0;
+  let activePairs = new Set();
+  let logEntries = [];
+  let triggerMode = 'intersect'; // 'intersect' | 'zone'
+  const soundLayers = { texture: true, harmony: true, creature: true, drone: true, percussion: true };
+
+  // audio state
+  let audioCtx = null;
+  let compressor = null;
+  let masterGain = null;
+  let noiseBuffer = null;
+  let masterVolume = 0.8;
+  const VOICE_LIMITS = { texture: 3, drone: 1 }; // drone=1 makes it the exclusive "anchor" role
+
+  function makeObjects(n) {
+    teardownAudio(); // stop & disconnect voices from the previous batch first —
+                      // must happen while `objects` still points at the old array
+    objects = [];
+    for (let i = 0; i < n; i++) objects.push(new SoundObject(nextId++));
+    document.getElementById('statCount').textContent = n;
+    setupAudioForObjects();
+  }
+
+  function pairKey(a, b) { return a.id < b.id ? a.id + '-' + b.id : b.id + '-' + a.id; }
+
+  // 0..1: how crowded the field is right around this object — used to make
+  // the drone's tempo/volume/note react to the scene instead of ticking
+  // along on its own regardless of what's happening
+  function localDensity(o) {
+    const p = o.screenParams();
+    let count = 0;
+    for (const other of objects) {
+      if (other === o) continue;
+      const q = other.screenParams();
+      const dx = p.sx - q.sx, dy = p.sy - q.sy;
+      if (Math.sqrt(dx * dx + dy * dy) < 260) count++;
+    }
+    return Math.min(1, count / 5);
+  }
+
+  function updateIntersectMode() {
+    for (const o of objects) o.intersecting = false;
+    const nowPairs = new Set();
+    const n = objects.length;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const a = objects[i], b = objects[j];
+        const pa = a.screenParams(), pb = b.screenParams();
+        const dx = pa.sx - pb.sx, dy = pa.sy - pb.sy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const key = pairKey(a, b);
+        const wasActive = activePairs.has(key);
+        // hysteresis: easier to enter an overlap than to leave one, so
+        // events last a bit longer instead of flickering at the boundary
+        const threshold = (pa.hitR + pb.hitR) * (wasActive ? 0.95 : 0.74);
+        if (dist < threshold) {
+          nowPairs.add(key);
+          a.intersecting = true; b.intersecting = true;
+          drawIntersectionLine(a, b);
+          if (!wasActive) {
+            a.pulse = 1; b.pulse = 1;
+            addLog(`${a.soundName} × ${b.soundName}`);
+            if (audioCtx) {
+              if (soundLayers.creature) {
+                if (a.shape === 'triangle') triggerCreature(a.creatureKind);
+                if (b.shape === 'triangle') triggerCreature(b.creatureKind);
+              }
+              if (soundLayers.percussion) {
+                if (a.shape === 'diamond') triggerPercussionOrMelody(a);
+                if (b.shape === 'diamond') triggerPercussionOrMelody(b);
+              }
+            }
+          }
+        }
+      }
+    }
+    activePairs = nowPairs;
+    document.getElementById('statPairs').textContent = activePairs.size;
+    const totalPossible = n * (n - 1) / 2;
+    const activity = totalPossible ? Math.round((activePairs.size / totalPossible) * 100) : 0;
+    document.getElementById('statActivity').textContent = activity + '%';
+  }
+
+  function updateZoneMode() {
+    drawZoneCircle();
+    const zr = getZoneRadiusPx();
+    let activeCount = 0;
+    for (const o of objects) {
+      const p = o.screenParams();
+      const zc = getZoneCenter();
+      const dx = p.sx - zc.x, dy = p.sy - zc.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const innerR = Math.max(0, zr - p.hitR); // fully active up to here
+      const outerR = zr + p.hitR;               // fully inactive past here
+      let raw;
+      if (dist <= innerR) raw = 1;
+      else if (dist >= outerR) raw = 0;
+      else raw = 1 - (dist - innerR) / (outerR - innerR);
+      const presence = raw * raw * (3 - 2 * raw); // smoothstep ease only at the fringe
+      o.presence = presence;
+      drawZonePull(o, presence);
+
+      const enterAt = 0.55, exitAt = 0.35;
+      if (!o.zoneActive && presence > enterAt) {
+        o.zoneActive = true;
+        addLog(`${o.soundName} вошёл в зону`);
+        if (audioCtx) {
+          if (soundLayers.creature && o.shape === 'triangle') triggerCreature(o.creatureKind);
+          if (soundLayers.percussion && o.shape === 'diamond') triggerPercussionOrMelody(o);
+        }
+      } else if (o.zoneActive && presence < exitAt) {
+        o.zoneActive = false;
+      }
+      if (o.zoneActive) activeCount++;
+    }
+    document.getElementById('statPairs').textContent = activeCount;
+    const activity = objects.length ? Math.round((activeCount / objects.length) * 100) : 0;
+    document.getElementById('statActivity').textContent = activity + '%';
+  }
+
+  function setTheme(name) {
+    if (!THEMES[name]) return;
+    currentTheme = name;
+    const t = THEMES[name];
+
+    COLORS = { ...t.colors };
+    PENTATONIC = [...t.scale];
+    CHORD_OFFSETS = [...t.chordOffsets];
+    TEXTURE_CONTINUOUS_KINDS = [...t.textureContinuous];
+    TEXTURE_GRANULAR_KINDS = [...t.textureGranular];
+    TEXTURE_KINDS = [...TEXTURE_CONTINUOUS_KINDS, ...TEXTURE_GRANULAR_KINDS];
+    HARMONY_CONTINUOUS_KINDS = [...t.harmonyContinuous];
+    HARMONY_KINDS = [...HARMONY_CONTINUOUS_KINDS, ...HARMONY_ONESHOT_KINDS];
+    CREATURE_KINDS = [...t.creature];
+    DRONE_KINDS = [...t.drone];
+
+    // theme-crossing state resets cleanly rather than carrying over
+    droneRootIndex = 0;
+    clockBeatDuration = 0;
+    clockLastBeatTime = 0;
+    melodyPlaying = false;
+
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === name));
+
+    document.getElementById('legendSwatchTexture').setAttribute('stroke', COLORS.circle);
+    document.getElementById('legendSwatchCreature').setAttribute('stroke', COLORS.triangle);
+    document.getElementById('legendSwatchHarmony').setAttribute('stroke', COLORS.square);
+    document.getElementById('legendSwatchDrone').setAttribute('stroke', COLORS.bar);
+    document.getElementById('legendSwatchPercussion').setAttribute('stroke', COLORS.diamond);
+    document.getElementById('legendTextTexture').textContent = TEXTURE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
+    document.getElementById('legendTextCreature').textContent = CREATURE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
+    document.getElementById('legendTextHarmony').textContent = HARMONY_KINDS.map(k => KIND_LABEL[k]).join(' / ');
+    document.getElementById('legendTextDrone').textContent = DRONE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
+
+    makeObjects(objects.length || 8); // fresh field + audio under the new theme
+  }
+
+  function setMode(mode) {
+    triggerMode = mode;
+    activePairs = new Set();
+    for (const o of objects) { o.intersecting = false; o.presence = 0; o.zoneActive = false; }
+    document.getElementById('modeIntersectBtn').classList.toggle('active', mode === 'intersect');
+    document.getElementById('modeZoneBtn').classList.toggle('active', mode === 'zone');
+    document.getElementById('statPairsLabel').textContent = mode === 'zone' ? 'in zone' : 'active pairs';
+  }
+
+  function addLog(entry) {
+    const time = new Date();
+    const t = time.toTimeString().slice(0, 8);
+    logEntries.unshift({ t, entry });
+    if (logEntries.length > 14) logEntries.pop();
+    renderLog();
+  }
+
+  function renderLog() {
+    const el = document.getElementById('log');
+    el.innerHTML = logEntries.map(e =>
+      `<div class="log-entry"><span class="t">${e.t}</span>${e.entry}</div>`
+    ).join('');
+  }
+
+  // ---- audio engine ----
+  function createNoiseBuffer() {
+    const len = audioCtx.sampleRate * 2;
+    const buffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    return buffer;
+  }
+
+  function initAudio() {
+    if (audioCtx) { audioCtx.resume(); return; }
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    compressor = audioCtx.createDynamicsCompressor();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = masterVolume;
+    compressor.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+    noiseBuffer = createNoiseBuffer();
+    setupAudioForObjects();
+  }
+
+  // texture voice: looping filtered noise, gain driven every frame by
+  // the current trigger strength. Three kinds so circles aren't all identical.
+  function createTextureVoice(kind) {
+    const source = audioCtx.createBufferSource();
+    source.buffer = noiseBuffer;
+    source.loop = true;
+
+    const filter = audioCtx.createBiquadFilter();
+    let maxGain, lfoRate;
+    let formant2 = null; // only used by 'voices'
+
+    if (kind === 'rain') {
+      filter.type = 'bandpass';
+      filter.frequency.value = rand(1800, 3400);
+      filter.Q.value = rand(1.4, 3);
+      lfoRate = rand(0.15, 0.3);
+      maxGain = rand(0.045, 0.08);
+    } else if (kind === 'water') {
+      filter.type = 'bandpass';
+      filter.frequency.value = rand(500, 1200);
+      filter.Q.value = rand(2, 5);
+      lfoRate = rand(0.08, 0.18);
+      maxGain = rand(0.05, 0.09);
+    } else if (kind === 'voices') {
+      // two stacked bandpass filters approximate vowel-like formants —
+      // a distant murmur, not intelligible speech
+      filter.type = 'bandpass';
+      filter.frequency.value = rand(450, 750);
+      filter.Q.value = rand(3, 6);
+      formant2 = audioCtx.createBiquadFilter();
+      formant2.type = 'bandpass';
+      formant2.frequency.value = rand(1100, 1700);
+      formant2.Q.value = rand(3, 6);
+      lfoRate = rand(0.12, 0.28); // slow waver, like breathing/muttering
+      maxGain = rand(0.04, 0.075);
+    } else if (kind === 'sub') {
+      // deep, barely-there wash — space's sense of vast empty distance
+      filter.type = 'lowpass';
+      filter.frequency.value = rand(70, 160);
+      filter.Q.value = rand(0.3, 0.7);
+      lfoRate = rand(0.015, 0.03);
+      maxGain = rand(0.05, 0.09);
+    } else if (kind === 'traffic') {
+      // steady urban hum — narrower and higher than 'wind', more "engine-ish"
+      filter.type = 'lowpass';
+      filter.frequency.value = rand(220, 450);
+      filter.Q.value = rand(0.8, 1.6);
+      lfoRate = rand(0.06, 0.12);
+      maxGain = rand(0.05, 0.09);
+    } else { // wind (default continuous kind)
+      filter.type = 'lowpass';
+      filter.frequency.value = rand(180, 650);
+      filter.Q.value = rand(0.3, 1);
+      lfoRate = rand(0.025, 0.06);
+      maxGain = rand(0.06, 0.1);
+    }
+
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = lfoRate;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = filter.frequency.value * 0.35;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0;
+
+    source.connect(filter);
+    if (formant2) { filter.connect(formant2); formant2.connect(gain); }
+    else { filter.connect(gain); }
+    gain.connect(compressor);
+    source.start();
+    lfo.start();
+
+    // shorter release than attack: fades out quicker so overlapping
+    // circles don't stack into a permanent wash
+    return { source, filter, formant2, lfo, gain, maxGain, kind, tauAttack: 0.22, tauRelease: 0.13, lastDesired: 0 };
+  }
+
+  // drone voice: low sustained pad for 'bar' shapes — the "anchor" sound.
+  // Root comes from the same drifting scale as everything else (one octave
+  // down from the lowest scale tone), all-sine for a soft, non-harsh tone.
+  function createDroneVoice(kind) {
+    const freq = getChordFreq(0) / 2;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    if (kind === 'void') filter.frequency.value = rand(120, 220); // lower, purer — space's emptiness
+    else if (kind === 'engine') filter.frequency.value = rand(300, 550); // grittier, more present
+    else filter.frequency.value = rand(220, 420);
+    filter.Q.value = 0.4;
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0;
+    filter.connect(gain);
+    gain.connect(compressor);
+
+    const partials = kind === 'engine' ? [
+      { ratio: 1, type: 'sawtooth', level: 0.34 }, // a bit of grit for the mechanical character
+      { ratio: 1.005, type: 'sine', level: 0.32 },
+      { ratio: 2, type: 'sine', level: 0.1 }
+    ] : [
+      { ratio: 1, type: 'sine', level: 0.48 },
+      { ratio: 1.005, type: 'sine', level: 0.32 }, // slow beating, feels alive
+      { ratio: 2, type: 'sine', level: 0.1 }        // faint octave overtone
+    ];
+    const oscs = [];
+    for (const p of partials) {
+      const osc = audioCtx.createOscillator();
+      osc.type = p.type;
+      osc.frequency.value = freq * p.ratio;
+      const oGain = audioCtx.createGain();
+      oGain.gain.value = p.level;
+      osc.connect(oGain);
+      oGain.connect(filter);
+      osc.start();
+      oscs.push(osc);
+
+      if (kind === 'haze' && p.ratio === 1.005) {
+        // slow pitch wobble on the detuned partial — unstable, dreamlike
+        const wobble = audioCtx.createOscillator();
+        wobble.frequency.value = rand(0.04, 0.08);
+        const wobbleGain = audioCtx.createGain();
+        wobbleGain.gain.value = freq * 0.02;
+        wobble.connect(wobbleGain); wobbleGain.connect(osc.frequency);
+        wobble.start();
+        oscs.push(wobble);
+      }
+    }
+
+    // per-kind character: 'swell' has no discrete beat at all (pure wash,
+    // deeper/slower gate), the others all keep a kick but differ in pattern
+    let gateRate, gateDepth, baseKickInterval, hasKick;
+    if (kind === 'swell') {
+      gateRate = rand(0.08, 0.13); gateDepth = 0.55; baseKickInterval = 0; hasKick = false;
+    } else if (kind === 'heartbeat') {
+      gateRate = rand(0.22, 0.3); gateDepth = 0.4; baseKickInterval = rand(2.2, 3.2); hasKick = true;
+    } else if (kind === 'wander') {
+      gateRate = rand(0.24, 0.34); gateDepth = 0.42; baseKickInterval = rand(1.9, 2.7); hasKick = true;
+    } else if (kind === 'void') {
+      gateRate = rand(0.05, 0.09); gateDepth = 0.7; baseKickInterval = rand(4.5, 6.5); hasKick = true; // very rare, distant
+    } else if (kind === 'engine') {
+      gateRate = rand(0.5, 0.75); gateDepth = 0.28; baseKickInterval = rand(0.9, 1.3); hasKick = true; // fast, mechanical
+    } else if (kind === 'haze') {
+      gateRate = rand(0.06, 0.1); gateDepth = 0.6; baseKickInterval = 0; hasKick = false; // pure wash, like swell but wobblier
+    } else { // pulse
+      gateRate = rand(0.26, 0.36); gateDepth = 0.42; baseKickInterval = rand(1.7, 2.5); hasKick = true;
+    }
+
+    // slow attack/release: drones should swell and fade gradually.
+    return {
+      oscs, filter, gain, maxGain: rand(0.08, 0.13),
+      tauAttack: 0.6, tauRelease: 0.5, lastDesired: 0,
+      gatePhase: rand(0, 1), gateRate, gateDepth,
+      rootFreq: freq, kind, hasKick,
+      nextKickTime: 0, baseKickInterval, kickInterval: baseKickInterval
+    };
+  }
+
+  // harmony voice: three instrument flavors on the shared pentatonic scale
+  // so any combination of squares stays consonant regardless of flavor mix
+  function createHarmonyVoice(kind, freq) {
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+
+    let partials;
+
+    if (kind === 'warm') {
+      // low and soft — sub-octave for warmth, root, gentle chorus detune,
+      // all sine so there's no buzz or brightness to grate on the ear
+      filter.frequency.value = 1500;
+      filter.Q.value = 0.4;
+      partials = [
+        { ratio: 0.5, type: 'sine', level: 0.3 },
+        { ratio: 1, type: 'sine', level: 0.42 },
+        { ratio: 1.006, type: 'sine', level: 0.22 }
+      ];
+    } else if (kind === 'bloom') {
+      // starts dark, slowly opens brighter over roughly half a minute —
+      // a cinematic swell rather than a static tone
+      filter.frequency.value = 500;
+      filter.Q.value = 0.5;
+      partials = [
+        { ratio: 1, type: 'sine', level: 0.42 },
+        { ratio: 2, type: 'sine', level: 0.2 },
+        { ratio: 1.5, type: 'sine', level: 0.16 }
+      ];
+    } else if (kind === 'crystal') {
+      // bright, spacious, bell-like — space's sense of clarity and distance
+      filter.frequency.value = 3200;
+      filter.Q.value = 0.6;
+      partials = [
+        { ratio: 1, type: 'sine', level: 0.36 },
+        { ratio: 2.01, type: 'sine', level: 0.22 },
+        { ratio: 3.99, type: 'sine', level: 0.12 }
+      ];
+    } else if (kind === 'neon') {
+      // brighter, slightly electric — an electric-piano-ish edge for city
+      filter.frequency.value = 2600;
+      filter.Q.value = 0.7;
+      partials = [
+        { ratio: 1, type: 'triangle', level: 0.4 },
+        { ratio: 2, type: 'sine', level: 0.18 },
+        { ratio: 1.008, type: 'triangle', level: 0.22 }
+      ];
+    } else if (kind === 'cluster') {
+      // deliberately close, non-chord ratios — beating/tension on purpose.
+      // This is dream's "how far can it drift" experiment.
+      filter.frequency.value = 1700;
+      filter.Q.value = 0.5;
+      partials = [
+        { ratio: 1, type: 'sine', level: 0.36 },
+        { ratio: 1.12, type: 'sine', level: 0.28 },
+        { ratio: 0.94, type: 'sine', level: 0.22 }
+      ];
+    } else { // pad
+      filter.frequency.value = 1900;
+      filter.Q.value = 0.4;
+      partials = [
+        { ratio: 1, type: 'sine', level: 0.5 },
+        { ratio: 1.004, type: 'sine', level: 0.3 }, // slight detune, chorus warmth
+        { ratio: 1.5, type: 'sine', level: 0.14 }    // soft fifth above, quiet
+      ];
+    }
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0;
+    filter.connect(gain);
+    gain.connect(compressor);
+
+    const oscs = [];
+    for (const p of partials) {
+      const osc = audioCtx.createOscillator();
+      osc.type = p.type;
+      osc.frequency.value = freq * p.ratio;
+      const oGain = audioCtx.createGain();
+      oGain.gain.value = p.level;
+      osc.connect(oGain);
+      oGain.connect(filter);
+      osc.start();
+      oscs.push(osc);
+    }
+
+    if (kind === 'bloom') {
+      const filterLfo = audioCtx.createOscillator();
+      filterLfo.frequency.value = rand(0.018, 0.028); // one slow sweep every ~35-55s
+      const filterLfoGain = audioCtx.createGain();
+      filterLfoGain.gain.value = 950;
+      filterLfo.connect(filterLfoGain);
+      filterLfoGain.connect(filter.frequency);
+      filterLfo.start();
+      oscs.push(filterLfo); // shares the same start/stop lifecycle, teardown handles it
+    }
+
+    const isSpacious = kind === 'crystal';
+    return {
+      oscs, filter, gain, maxGain: rand(0.1, 0.18),
+      tauAttack: isSpacious ? 0.7 : 0.4, tauRelease: isSpacious ? 0.65 : 0.32, lastDesired: 0
+    };
+  }
+
+  // one-shot rain droplet — a short, high, filtered click layered on top
+  // of the 'rain' texture kind for a bit of detail beyond plain hiss
+  // soft kick-drum thump for the drone/anchor voice — a quick pitch drop
+  // plus a rounded amplitude envelope. This is what actually reads as
+  // "rhythm section" rather than just a slow volume breathe.
+  function triggerKickThump(rootFreq) {
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    const startFreq = Math.max(50, rootFreq * 2.2);
+    const endFreq = Math.max(38, rootFreq * 0.9);
+    osc.frequency.setValueAtTime(startFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.16);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.16, 0.22), now + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008, now + rand(0.35, 0.5));
+    osc.connect(g); g.connect(compressor);
+    osc.start(now); osc.stop(now + 0.6);
+    osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+  }
+
+  function triggerDroplet() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = rand(2600, 5200);
+    bp.Q.value = rand(4, 9);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.05, 0.11), now + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0008, now + rand(0.15, 0.32));
+    src.connect(bp); bp.connect(g); g.connect(compressor);
+    src.start(now);
+    src.stop(now + 0.4);
+    src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // one-shot creature sounds — three flavors for variety across triangles
+  function triggerCreature(kind) {
+    const now = audioCtx.currentTime;
+
+    if (kind === 'cricket') {
+      // steady rhythmic clicks, unlike chatter's fast random burst —
+      // more insect-like, evenly spaced
+      const clickCount = 6 + Math.floor(Math.random() * 4);
+      const baseFreq = rand(2800, 4200);
+      const spacing = rand(0.09, 0.13);
+      for (let i = 0; i < clickCount; i++) {
+        const t = now + i * spacing;
+        const src = audioCtx.createBufferSource();
+        src.buffer = noiseBuffer;
+        const bp = audioCtx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.frequency.value = baseFreq * rand(0.95, 1.05); bp.Q.value = 8;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(rand(0.04, 0.08), t + 0.003);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + 0.025);
+        src.connect(bp); bp.connect(g); g.connect(compressor);
+        src.start(t); src.stop(t + 0.04);
+        src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+      }
+
+    } else if (kind === 'blip') {
+      // short synthetic bleep — robotic/alien, distinct from anything organic
+      const osc = audioCtx.createOscillator();
+      osc.type = 'square';
+      const f1 = rand(700, 1400), f2 = f1 * rand(1.4, 2.2);
+      osc.frequency.setValueAtTime(f1, now);
+      osc.frequency.setValueAtTime(f2, now + 0.06);
+      const lp = audioCtx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2200;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.06, 0.11), now + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + 0.16);
+      osc.connect(lp); lp.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + 0.2);
+      osc.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'drift') {
+      // long, slow, barely-moving detuned tone — a distant signal
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const base = rand(300, 500);
+      const dur = rand(1.4, 2.2);
+      osc.frequency.setValueAtTime(base, now);
+      osc.frequency.linearRampToValueAtTime(base * rand(0.96, 1.05), now + dur);
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine'; osc2.frequency.value = base * 1.01;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.05, 0.09), now + dur * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
+      osc.connect(g); osc2.connect(g); g.connect(compressor);
+      osc.start(now); osc2.start(now);
+      osc.stop(now + dur + 0.1); osc2.stop(now + dur + 0.1);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'honk') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = rand(280, 380);
+      const lp = audioCtx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 1200;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.1, 0.16), now + 0.02);
+      g.gain.setValueAtTime(rand(0.1, 0.16), now + 0.12);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + 0.22);
+      osc.connect(lp); lp.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + 0.3);
+      osc.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'siren') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const base = rand(500, 650);
+      osc.frequency.setValueAtTime(base, now);
+      osc.frequency.linearRampToValueAtTime(base * 1.5, now + 0.5);
+      osc.frequency.linearRampToValueAtTime(base, now + 1.0);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.06, 0.1), now + 0.1);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + 1.1);
+      osc.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + 1.2);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'trill') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const baseFreq = rand(900, 1900);
+      osc.frequency.value = baseFreq;
+      const vib = audioCtx.createOscillator();
+      vib.frequency.value = rand(18, 28); // fast wobble = trill
+      const vibGain = audioCtx.createGain();
+      vibGain.gain.value = baseFreq * 0.06;
+      vib.connect(vibGain); vibGain.connect(osc.frequency);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.08, 0.16), now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0008, now + rand(0.3, 0.5));
+      osc.connect(g); g.connect(compressor);
+      osc.start(now); vib.start(now);
+      osc.stop(now + 0.6); vib.stop(now + 0.6);
+      osc.onended = () => { try { g.disconnect(); vibGain.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'chatter') {
+      // a quick burst of clicks, cicada/squirrel-like — not one tone but a series
+      const clickCount = 4 + Math.floor(Math.random() * 5);
+      const baseFreq = rand(1800, 3200);
+      for (let i = 0; i < clickCount; i++) {
+        const t = now + i * rand(0.028, 0.05);
+        const src = audioCtx.createBufferSource();
+        src.buffer = noiseBuffer;
+        const bp = audioCtx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = baseFreq * rand(0.85, 1.2);
+        bp.Q.value = rand(3, 7);
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(rand(0.06, 0.13), t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0006, t + rand(0.02, 0.045));
+        src.connect(bp); bp.connect(g); g.connect(compressor);
+        src.start(t); src.stop(t + 0.08);
+        src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+      }
+
+    } else if (kind === 'howl') {
+      // long, slow pitch slide — a distant owl/animal call, not a quick blip
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const startFreq = rand(300, 500);
+      const peakFreq = startFreq * rand(1.4, 1.9);
+      const endFreq = startFreq * rand(0.7, 0.9);
+      const dur = rand(1.1, 1.9);
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.linearRampToValueAtTime(peakFreq, now + dur * 0.4);
+      osc.frequency.linearRampToValueAtTime(endFreq, now + dur);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.09, 0.16), now + dur * 0.15);
+      g.gain.linearRampToValueAtTime(rand(0.06, 0.11), now + dur * 0.7);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
+      osc.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + dur + 0.1);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'whistle') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const base = rand(500, 900);
+      const peak = base * rand(1.3, 1.6);
+      const dur = rand(0.7, 1.3);
+      osc.frequency.setValueAtTime(base, now);
+      osc.frequency.linearRampToValueAtTime(peak, now + dur * 0.5);
+      osc.frequency.linearRampToValueAtTime(base * 0.9, now + dur);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.07, 0.13), now + dur * 0.2);
+      g.gain.linearRampToValueAtTime(rand(0.05, 0.09), now + dur * 0.75);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
+      osc.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + dur + 0.1);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+
+    } else { // chirp
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      const startFreq = rand(650, 1500);
+      const endFreq = Math.max(120, startFreq * rand(0.45, 1.5));
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + rand(0.12, 0.26));
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.1, 0.2), now + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0008, now + rand(0.2, 0.4));
+      osc.connect(g); g.connect(compressor);
+      osc.start(now); osc.stop(now + 0.55);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+    }
+  }
+
+  // percussion "riff": 2-5 short notes played quickly in a row, all on the
+  // shared pentatonic scale, walked as a small melodic run rather than random
+  function triggerPercussionRun(kind) {
+    const droneBeat = clockBeatDuration > 0 ? Math.min(clockBeatDuration, 3.2) : 2.1;
+    const now = quantizeStart(audioCtx.currentTime);
+    let noteCount, spacingFn, waveType, gainRange, decayRange, octaveUp;
+
+    if (kind === 'quick') {
+      noteCount = 4 + Math.floor(Math.random() * 4); // 4..7, fast run
+      spacingFn = () => droneBeat * rand(0.02, 0.035);
+      waveType = 'triangle'; gainRange = [0.1, 0.16]; decayRange = [0.06, 0.12]; octaveUp = 2;
+    } else if (kind === 'lazy') {
+      noteCount = 2 + Math.floor(Math.random() * 3); // 2..4, unhurried
+      spacingFn = () => droneBeat * rand(0.08, 0.13);
+      waveType = 'sine'; gainRange = [0.13, 0.2]; decayRange = [0.18, 0.3]; octaveUp = 1;
+    } else if (kind === 'skip') {
+      let toggle = true;
+      spacingFn = () => { toggle = !toggle; return toggle ? droneBeat * rand(0.022, 0.032) : droneBeat * rand(0.075, 0.105); };
+      noteCount = 3 + Math.floor(Math.random() * 3); // 3..5, short-long-short-long
+      waveType = 'triangle'; gainRange = [0.11, 0.18]; decayRange = [0.09, 0.16]; octaveUp = 2;
+    } else { // walk (default, original character)
+      noteCount = 2 + Math.floor(Math.random() * 4); // 2..5
+      spacingFn = () => droneBeat * rand(0.033, 0.06);
+      waveType = 'triangle'; gainRange = [0.12, 0.2]; decayRange = [0.1, 0.2]; octaveUp = 2;
+    }
+
+    let idx = Math.floor(Math.random() * PENTATONIC.length);
+    let t = now;
+    for (let i = 0; i < noteCount; i++) {
+      idx = Math.max(0, Math.min(PENTATONIC.length - 1, idx + Math.floor(rand(-2, 3))));
+      const freq = getScaleFreq(idx) * octaveUp;
+      const osc = audioCtx.createOscillator();
+      osc.type = waveType;
+      osc.frequency.value = freq;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(gainRange[0], gainRange[1]), t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + rand(decayRange[0], decayRange[1]));
+      osc.connect(g); g.connect(compressor);
+      osc.start(t); osc.stop(t + 0.35);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+      t += spacingFn();
+    }
+  }
+
+  // "melody" — rarer, longer, more deliberate phrase (several quarter-ish
+  // notes, gentle tone) than the quick percussion riff. Exclusive with
+  // itself via melodyPlaying: never two melodies stacked at once.
+  let melodyPlaying = false;
+
+  const MELODY_INSTRUMENTS = ['soft', 'flute', 'marimba', 'strings', 'celeste'];
+
+  // one melody note, timbre depends on the instrument picked for the whole phrase
+  function playMelodyNote(instrument, freq, t, dur) {
+    if (instrument === 'flute') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const vib = audioCtx.createOscillator();
+      vib.frequency.value = rand(4.5, 6);
+      const vibGain = audioCtx.createGain();
+      vibGain.gain.value = freq * 0.008;
+      vib.connect(vibGain); vibGain.connect(osc.frequency);
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = freq * 2.2; bp.Q.value = 1.2;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.09, 0.14), t + dur * 0.25);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur);
+      osc.connect(bp); bp.connect(g); g.connect(compressor);
+      osc.start(t); vib.start(t);
+      osc.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
+      osc.onended = () => { try { g.disconnect(); bp.disconnect(); vibGain.disconnect(); } catch (e) {} };
+
+    } else if (instrument === 'marimba') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const click = audioCtx.createOscillator(); // fast-decaying mallet click
+      click.type = 'sine'; click.frequency.value = freq * 4;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.13, 0.2), t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur * 0.8);
+      const gClick = audioCtx.createGain();
+      gClick.gain.setValueAtTime(0.09, t);
+      gClick.gain.exponentialRampToValueAtTime(0.0004, t + 0.06);
+      osc.connect(g); click.connect(gClick);
+      g.connect(compressor); gClick.connect(compressor);
+      osc.start(t); click.start(t);
+      osc.stop(t + dur); click.stop(t + 0.1);
+      osc.onended = () => { try { g.disconnect(); gClick.disconnect(); } catch (e) {} };
+
+    } else if (instrument === 'strings') {
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = freq * 3.5; filter.Q.value = 0.6;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.08, 0.12), t + dur * 0.4); // slow bowed attack
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur + 0.1);
+      filter.connect(g); g.connect(compressor);
+      const oscs = [];
+      for (const ratio of [1, 1.006, 0.997]) {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sawtooth'; osc.frequency.value = freq * ratio;
+        const og = audioCtx.createGain(); og.gain.value = 0.33;
+        osc.connect(og); og.connect(filter);
+        osc.start(t); osc.stop(t + dur + 0.15);
+        oscs.push(osc);
+      }
+      oscs[0].onended = () => { try { g.disconnect(); filter.disconnect(); } catch (e) {} };
+
+    } else if (instrument === 'celeste') {
+      const carrier = audioCtx.createOscillator();
+      carrier.type = 'sine'; carrier.frequency.value = freq * 2;
+      const modulator = audioCtx.createOscillator();
+      modulator.type = 'sine'; modulator.frequency.value = freq * 2 * 3.01; // gently inharmonic, soft not clangy
+      const modGain = audioCtx.createGain();
+      modGain.gain.setValueAtTime(freq * 0.7, t);
+      modGain.gain.exponentialRampToValueAtTime(4, t + dur * 0.85);
+      modulator.connect(modGain); modGain.connect(carrier.frequency);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.08, 0.13), t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur * 0.9);
+      carrier.connect(g); g.connect(compressor);
+      carrier.start(t); modulator.start(t);
+      carrier.stop(t + dur); modulator.stop(t + dur);
+      carrier.onended = () => { try { g.disconnect(); modGain.disconnect(); } catch (e) {} };
+
+    } else { // soft — the original gentle sine+detune character
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine'; osc2.frequency.value = freq * 1.004;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.1, 0.16), t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur * 0.95);
+      osc.connect(g); osc2.connect(g); g.connect(compressor);
+      osc.start(t); osc2.start(t);
+      osc.stop(t + dur); osc2.stop(t + dur);
+      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+    }
+  }
+
+  function triggerMelodyPhrase(instrument) {
+    melodyPlaying = true;
+    instrument = instrument || MELODY_INSTRUMENTS[Math.floor(Math.random() * MELODY_INSTRUMENTS.length)];
+    const now = quantizeStart(audioCtx.currentTime);
+    const noteCount = 5 + Math.floor(Math.random() * 6); // 5..10, longer than before
+    let idx = Math.max(0, Math.min(PENTATONIC.length - 1, droneRootIndex + CHORD_OFFSETS[Math.floor(Math.random() * CHORD_OFFSETS.length)]));
+    let t = now;
+    let totalDur = 0;
+    const quarter = (instrument === 'marimba' || instrument === 'celeste') ? rand(0.24, 0.34)
+      : (instrument === 'flute' || instrument === 'strings') ? rand(0.38, 0.5)
+      : rand(0.34, 0.44);
+
+    for (let i = 0; i < noteCount; i++) {
+      const step = Math.random() < 0.5 ? 1 : -1;
+      idx = Math.max(0, Math.min(PENTATONIC.length - 1, idx + step * (Math.random() < 0.75 ? 1 : 2)));
+      const freq = getScaleFreq(idx);
+      const dur = Math.random() < 0.3 ? quarter * 0.5 : quarter;
+      playMelodyNote(instrument, freq, t, dur);
+      t += dur;
+      totalDur += dur;
+    }
+
+    setTimeout(() => { melodyPlaying = false; }, (totalDur + 0.4) * 1000);
+  }
+
+  // what a diamond ('percussion' layer) object actually triggers: usually
+  // the short riff (unlimited, "minor"), occasionally the longer melody
+  // instead — but never a second melody while one is still playing
+  function triggerPercussionOrMelody(o) {
+    if (!melodyPlaying && Math.random() < 0.16) triggerMelodyPhrase();
+    else triggerPercussionRun(o.percussionKind);
+  }
+
+  // one-shot sparkle grain: a tiny, high, very short filtered noise tick —
+  // many of these firing sparsely make up the whole 'sparkle' texture kind
+  // rare deep rumble — nature's distant thunder, much longer/lower than
+  // any other texture detail, and much rarer
+  function triggerThunderRumble() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = rand(90, 220); lp.Q.value = 0.6;
+    const g = audioCtx.createGain();
+    const dur = rand(1.8, 3.2);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.08, 0.14), now + dur * 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
+    src.connect(lp); lp.connect(g); g.connect(compressor);
+    src.start(now); src.stop(now + dur + 0.2);
+    src.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // sharp high crackle — space's radio static, much brighter/shorter than
+  // sparkle, more "signal noise" than "twinkle"
+  function triggerStaticCrackle() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const hp = audioCtx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = rand(2000, 5000);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.02, 0.05), now + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0005, now + rand(0.02, 0.05));
+    src.connect(hp); hp.connect(g); g.connect(compressor);
+    src.start(now); src.stop(now + 0.12);
+    src.onended = () => { try { hp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // swells IN rather than decaying out — a reverse-cymbal-like unusual
+  // envelope shape, dream's most experimental texture
+  function triggerReverseSwell() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = rand(600, 1400); bp.Q.value = rand(1.5, 3);
+    const g = audioCtx.createGain();
+    const dur = rand(1.2, 2.0);
+    g.gain.setValueAtTime(0.0006, now);
+    g.gain.exponentialRampToValueAtTime(rand(0.05, 0.09), now + dur * 0.92); // swells in
+    g.gain.linearRampToValueAtTime(0.0001, now + dur + 0.05); // then cuts off
+    src.connect(bp); bp.connect(g); g.connect(compressor);
+    src.start(now); src.stop(now + dur + 0.1);
+    src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // pitched chime grain — unlike sparkle's pure noise tick, this rings a
+  // soft scale-relative tone. Sparse and quiet, like distant wind chimes.
+  function triggerShimmerGrain() {
+    const now = audioCtx.currentTime;
+    const idx = Math.floor(Math.random() * PENTATONIC.length);
+    const freq = getScaleFreq(idx) * (Math.random() < 0.5 ? 2 : 4);
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 2.5;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.03, 0.065), now + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0006, now + rand(0.4, 0.75));
+    osc.connect(bp); bp.connect(g); g.connect(compressor);
+    osc.start(now); osc.stop(now + 0.9);
+    osc.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  function triggerSparkleGrain() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = rand(3500, 8000);
+    bp.Q.value = rand(5, 12);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.03, 0.07), now + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0006, now + rand(0.04, 0.09));
+    src.connect(bp); bp.connect(g); g.connect(compressor);
+    src.start(now); src.stop(now + 0.15);
+    src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // stops & disconnects one object's audio voice (used both for full
+  // teardown and for single-object replacement when it flies offscreen)
+  function teardownVoice(o) {
+    if (!o.audio) return;
+    try { if (o.audio.source) o.audio.source.stop(); } catch (e) {}
+    try { if (o.audio.lfo) o.audio.lfo.stop(); } catch (e) {}
+    if (o.audio.oscs) for (const osc of o.audio.oscs) { try { osc.stop(); } catch (e) {} }
+    try { o.audio.gain.disconnect(); } catch (e) {}
+    o.audio = null;
+  }
+
+  function teardownAudio() {
+    for (const o of objects) teardownVoice(o);
+  }
+
+  // attaches the right persistent voice for one object, if its shape/kind
+  // calls for one (used both for full setup and single-object replacement)
+  function attachVoice(o) {
+    if (!audioCtx) return;
+    if (o.shape === 'circle' && TEXTURE_CONTINUOUS_KINDS.includes(o.textureKind)) {
+      o.audio = createTextureVoice(o.textureKind);
+    } else if (o.shape === 'square' && HARMONY_CONTINUOUS_KINDS.includes(o.harmonyKind)) {
+      o.audio = createHarmonyVoice(o.harmonyKind, o.noteFreq);
+    } else if (o.shape === 'bar') {
+      o.audio = createDroneVoice(o.droneKind);
+    }
+    // triangle ('creature'), diamond ('percussion'), and granular/one-shot
+    // texture & harmony kinds have no persistent voice — event-triggered only
+  }
+
+  function setupAudioForObjects() {
+    if (!audioCtx) return;
+    teardownAudio();
+    for (const o of objects) attachVoice(o);
+  }
+
+  function updateAudio(dt) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    // raw strength per object this frame, before any voice-limit capping
+    const strengthMap = new Map();
+    for (const o of objects) {
+      const layer = SHAPE_LAYER[o.shape];
+      const enabled = soundLayers[layer];
+      const s = enabled ? (triggerMode === 'intersect' ? (o.intersecting ? 1 : 0) : o.presence) : 0;
+      strengthMap.set(o, s);
+    }
+
+    // cap simultaneous voices for layers prone to piling up (texture, drone):
+    // only the top-N by current strength stay audible, rest get silenced
+    for (const layerName in VOICE_LIMITS) {
+      const limit = VOICE_LIMITS[layerName];
+      const candidates = objects.filter(o => SHAPE_LAYER[o.shape] === layerName && strengthMap.get(o) > 0);
+      candidates.sort((a, b) => strengthMap.get(b) - strengthMap.get(a));
+      candidates.slice(limit).forEach(o => strengthMap.set(o, 0));
+    }
+
+    // how many continuous voices are actually sounding right now — solo/sparse
+    // moments get a longer, nicer release tail; busy moments stay tighter so
+    // things don't pile up into a wash
+    let activeVoiceCount = 0;
+    for (const o of objects) {
+      if (o.audio && (strengthMap.get(o) || 0) > 0.05) activeVoiceCount++;
+    }
+    const releaseScale = Math.max(0.7, 3 - activeVoiceCount * 0.5);
+    // activeVoiceCount: 1→2.5x tail, 2→2.0x, 3→1.5x, 4→1.0x, 5+→0.7x floor
+
+    for (const o of objects) {
+      if (!o.audio) continue;
+      const strength = strengthMap.get(o) || 0;
+      let desired = strength * o.audio.maxGain;
+
+      if (o.shape === 'bar') {
+        const gd = o.audio.gateDepth;
+        const gateLfo = 0.5 + 0.5 * Math.sin((now * o.audio.gateRate + o.audio.gatePhase) * Math.PI * 2);
+        desired *= (1 - gd) + gd * gateLfo; // never fully drops out, depth varies by kind
+
+        if (strength > 0.15) {
+          const density = localDensity(o); // 0..1 — how crowded the field is right here
+          const reactiveInterval = o.audio.baseKickInterval * (1 - density * 0.45); // busier = faster
+          const reactiveGainMul = 1 + density * 0.35; // busier = a touch louder
+          desired *= reactiveGainMul;
+
+          if (o.audio.hasKick && now >= o.audio.nextKickTime) {
+            triggerKickThump(o.audio.rootFreq);
+
+            if (o.audio.kind === 'heartbeat') {
+              const secondBeat = now + rand(0.16, 0.22);
+              setTimeout(() => { if (audioCtx) triggerKickThump(o.audio.rootFreq * 0.97); }, (secondBeat - now) * 1000);
+            }
+
+            if (o.audio.kind === 'wander' && Math.random() < 0.3) {
+              droneRootIndex = Math.max(0, Math.min(PENTATONIC.length - 3, droneRootIndex + (Math.random() < 0.5 ? -2 : 2)));
+              o.audio.rootFreq = getChordFreq(0) / 2;
+            }
+
+            clockBeatDuration = reactiveInterval;
+            clockLastBeatTime = now;
+            o.audio.nextKickTime = now + reactiveInterval;
+          } else if (!o.audio.hasKick) {
+            // 'swell' has no kick, but still acts as a (slower, softer) clock
+            // reference so other layers have *something* to loosely settle near
+            if (clockBeatDuration <= 0) { clockBeatDuration = 1 / o.audio.gateRate; clockLastBeatTime = now; }
+          }
+        } else {
+          o.audio.nextKickTime = 0; // starts cleanly next time it becomes active
+        }
+      }
+
+      const tau = desired > o.audio.lastDesired ? o.audio.tauAttack : o.audio.tauRelease * releaseScale;
+      o.audio.gain.gain.setTargetAtTime(desired, now, tau);
+      o.audio.lastDesired = desired;
+    }
+
+    // granular/detail one-shots respect the same (possibly capped) strength
+    for (const o of objects) {
+      if (o.shape !== 'circle') continue;
+      const s = strengthMap.get(o) || 0;
+      if (o.textureKind === 'rain' && s > 0.3 && Math.random() < dt * 1.1) triggerDroplet();
+      if (o.textureKind === 'sparkle' && s > 0.2 && Math.random() < dt * (2 + s * 6)) triggerSparkleGrain();
+      if (o.textureKind === 'shimmer' && s > 0.2 && Math.random() < dt * (0.5 + s * 1.2)) triggerShimmerGrain();
+      if (o.textureKind === 'thunder' && s > 0.25 && Math.random() < dt * 0.06) triggerThunderRumble();
+      if (o.textureKind === 'static' && s > 0.2 && Math.random() < dt * (1.2 + s * 3)) triggerStaticCrackle();
+      if (o.textureKind === 'reverse' && s > 0.2 && Math.random() < dt * 0.15) triggerReverseSwell();
+    }
+  }
+
+  // ---- controls ----
+  const hideUiBtn = document.getElementById('hideUiBtn');
+  hideUiBtn.addEventListener('click', () => {
+    document.body.classList.toggle('ui-hidden');
+    hideUiBtn.textContent = document.body.classList.contains('ui-hidden') ? 'Show UI' : 'Hide UI';
+  });
+
+  const soundBtn = document.getElementById('soundBtn');
+  let soundOn = false;
+  soundBtn.addEventListener('click', () => {
+    if (!audioCtx) {
+      initAudio();
+      soundOn = true;
+    } else if (soundOn) {
+      audioCtx.suspend();
+      soundOn = false;
+    } else {
+      audioCtx.resume();
+      soundOn = true;
+    }
+    soundBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
+    soundBtn.classList.toggle('on', soundOn);
+  });
+
+  // No suspend-on-hide here: a background heartbeat (below, near the main
+  // loop) keeps the simulation genuinely progressing while the tab is
+  // hidden, so audio keeps evolving instead of freezing or going silent.
+
+  document.getElementById('modeIntersectBtn').addEventListener('click', () => setMode('intersect'));
+  document.getElementById('modeZoneBtn').addEventListener('click', () => setMode('zone'));
+
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+  });
+
+  document.getElementById('layerTexture').addEventListener('change', e => { soundLayers.texture = e.target.checked; });
+  document.getElementById('layerCreature').addEventListener('change', e => { soundLayers.creature = e.target.checked; });
+  document.getElementById('layerHarmony').addEventListener('change', e => { soundLayers.harmony = e.target.checked; });
+  document.getElementById('layerDrone').addEventListener('change', e => { soundLayers.drone = e.target.checked; });
+
+  const volumeSlider = document.getElementById('volumeSlider');
+  volumeSlider.addEventListener('input', () => {
+    masterVolume = parseInt(volumeSlider.value, 10) / 100;
+    document.getElementById('volumeLabel').textContent = volumeSlider.value + '%';
+    if (audioCtx && masterGain) masterGain.gain.setTargetAtTime(masterVolume, audioCtx.currentTime, 0.05);
+  });
+  document.getElementById('layerPercussion').addEventListener('change', e => { soundLayers.percussion = e.target.checked; });
+  const toggleBtn = document.getElementById('toggleBtn');
+  toggleBtn.addEventListener('click', () => {
+    running = !running;
+    toggleBtn.textContent = running ? 'Pause' : 'Resume';
+  });
+
+  document.getElementById('reshuffleBtn').addEventListener('click', () => {
+    makeObjects(objects.length);
+    activePairs = new Set();
+  });
+
+  const countSlider = document.getElementById('countSlider');
+  countSlider.addEventListener('input', () => {
+    document.getElementById('countLabel').textContent = countSlider.value;
+    makeObjects(parseInt(countSlider.value, 10));
+    activePairs = new Set();
+  });
+
+  const tempoSlider = document.getElementById('tempoSlider');
+  tempoSlider.addEventListener('input', () => {
+    tempo = parseInt(tempoSlider.value, 10) / 100;
+    document.getElementById('tempoLabel').textContent = tempo.toFixed(1) + '×';
+  });
+
+  // ---- main loop ----
+  let lastTime = performance.now();
+
+  function tick(dt) {
+    ctx.clearRect(0, 0, W, H);
+    drawEqDial();
+
+    if (running) {
+      for (const o of objects) o.update(dt * tempo);
+
+      // an object that's fully flown off-screen doesn't come back — it's
+      // replaced immediately by a fresh random one at a new random spot
+      for (let k = 0; k < objects.length; k++) {
+        if (objects[k].isOffscreen()) {
+          teardownVoice(objects[k]);
+          const fresh = new SoundObject(nextId++);
+          attachVoice(fresh);
+          objects[k] = fresh;
+        }
+      }
+    }
+
+    // draw far-to-near
+    const sorted = [...objects].sort((a, b) => b.z - a.z);
+    for (const o of sorted) drawTrail(o);
+
+    if (triggerMode === 'intersect') updateIntersectMode(); else updateZoneMode();
+
+    for (const o of sorted) drawShape(o);
+
+    updateAudio(dt);
+  }
+
+  function frame(now) {
+    let dt = (now - lastTime) / 1000;
+    dt = Math.min(dt, 0.05); // tight clamp: keeps visible motion smooth frame-to-frame
+    lastTime = now;
+    tick(dt);
+    requestAnimationFrame(frame);
+  }
+
+  // Background heartbeat: requestAnimationFrame fully stops in a hidden tab
+  // (by design, can't be worked around), so nothing above would run at all.
+  // setInterval keeps firing even when hidden — browsers throttle it, but it
+  // doesn't stop — so this keeps the simulation genuinely progressing at
+  // real elapsed-time pace while the tab is in the background, rather than
+  // freezing or going silent.
+  setInterval(() => {
+    if (!document.hidden) return; // rAF already owns the visible case
+    const now = performance.now();
+    let dt = (now - lastTime) / 1000;
+    dt = Math.min(dt, 2); // only guard against extreme gaps (e.g. laptop sleep)
+    lastTime = now;
+    tick(dt);
+  }, 200);
+
+  // ---- dev-only debug panel (not part of the regular UI) ----
+  // lets me audition every sound in isolation instead of waiting for
+  // random triggers, so I can quickly tell what's good vs annoying
+  function previewContinuousVoice(voice) {
+    if (!voice || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    voice.gain.gain.setTargetAtTime(voice.maxGain, now, 0.15);
+    setTimeout(() => {
+      if (!audioCtx) return;
+      voice.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+      setTimeout(() => {
+        try { if (voice.source) voice.source.stop(); } catch (e) {}
+        try { if (voice.lfo) voice.lfo.stop(); } catch (e) {}
+        if (voice.oscs) voice.oscs.forEach(o => { try { o.stop(); } catch (e) {} });
+        try { voice.gain.disconnect(); } catch (e) {}
+      }, 500);
+    }, 2200);
+  }
+
+  const DEBUG_SOUNDS = [
+    { label: 'текстура: дождь', run: () => previewContinuousVoice(createTextureVoice('rain')) },
+    { label: 'текстура: ветер', run: () => previewContinuousVoice(createTextureVoice('wind')) },
+    { label: 'текстура: вода', run: () => previewContinuousVoice(createTextureVoice('water')) },
+    { label: 'текстура: голоса', run: () => previewContinuousVoice(createTextureVoice('voices')) },
+    { label: 'текстура: искры', run: () => { for (let i = 0; i < 8; i++) setTimeout(triggerSparkleGrain, i * 130); } },
+    { label: 'текстура: перезвон', run: () => { for (let i = 0; i < 5; i++) setTimeout(triggerShimmerGrain, i * 700); } },
+    { label: 'гармония: пэд', run: () => previewContinuousVoice(createHarmonyVoice('pad', getScaleFreq(4))) },
+    { label: 'гармония: тёплый', run: () => previewContinuousVoice(createHarmonyVoice('warm', getScaleFreq(4))) },
+    { label: 'гармония: расцвет', run: () => previewContinuousVoice(createHarmonyVoice('bloom', getScaleFreq(4))) },
+    { label: 'дрон: пэд — пульс', run: () => previewContinuousVoice(createDroneVoice('pulse')) },
+    { label: 'дрон: пэд — волна', run: () => previewContinuousVoice(createDroneVoice('swell')) },
+    { label: 'дрон: пэд — сердцебиение', run: () => previewContinuousVoice(createDroneVoice('heartbeat')) },
+    { label: 'дрон: пэд — блуждающий', run: () => previewContinuousVoice(createDroneVoice('wander')) },
+    { label: 'дрон: удар (кик)', run: () => triggerKickThump(getScaleFreq(0) / 2) },
+    { label: 'существо: чирик', run: () => triggerCreature('chirp') },
+    { label: 'существо: трель', run: () => triggerCreature('trill') },
+    { label: 'существо: стрекот', run: () => triggerCreature('chatter') },
+    { label: 'существо: вой', run: () => triggerCreature('howl') },
+    { label: 'существо: свист', run: () => triggerCreature('whistle') },
+    { label: 'перкуссия: рывок', run: () => triggerPercussionRun('quick') },
+    { label: 'перкуссия: шаг', run: () => triggerPercussionRun('walk') },
+    { label: 'перкуссия: лениво', run: () => triggerPercussionRun('lazy') },
+    { label: 'перкуссия: вприпрыжку', run: () => triggerPercussionRun('skip') },
+    { label: 'мелодия: soft', run: () => triggerMelodyPhrase('soft') },
+    { label: 'мелодия: flute', run: () => triggerMelodyPhrase('flute') },
+    { label: 'мелодия: marimba', run: () => triggerMelodyPhrase('marimba') },
+    { label: 'мелодия: strings', run: () => triggerMelodyPhrase('strings') },
+    { label: 'мелодия: celeste', run: () => triggerMelodyPhrase('celeste') },
+    { label: 'капля дождя (деталь)', run: () => triggerDroplet() },
+    { label: '— природа: гром', run: () => triggerThunderRumble() },
+    { label: '— природа: сверчок', run: () => triggerCreature('cricket') },
+    { label: '— космос: помехи', run: () => triggerStaticCrackle() },
+    { label: '— космос: гармония кристалл', run: () => previewContinuousVoice(createHarmonyVoice('crystal', getScaleFreq(4))) },
+    { label: '— космос: дрон пустота', run: () => previewContinuousVoice(createDroneVoice('void')) },
+    { label: '— космос: существо блип', run: () => triggerCreature('blip') },
+    { label: '— космос: существо дрейф', run: () => triggerCreature('drift') },
+    { label: '— город: текстура трафик', run: () => previewContinuousVoice(createTextureVoice('traffic')) },
+    { label: '— город: гармония неон', run: () => previewContinuousVoice(createHarmonyVoice('neon', getScaleFreq(4))) },
+    { label: '— город: дрон мотор', run: () => previewContinuousVoice(createDroneVoice('engine')) },
+    { label: '— город: гудок', run: () => triggerCreature('honk') },
+    { label: '— город: сирена', run: () => triggerCreature('siren') },
+    { label: '— сон: реверс', run: () => triggerReverseSwell() },
+    { label: '— сон: гармония кластер', run: () => previewContinuousVoice(createHarmonyVoice('cluster', getScaleFreq(4))) },
+    { label: '— сон: дрон дымка', run: () => previewContinuousVoice(createDroneVoice('haze')) }
+  ];
+
+  function buildDebugPanel() {
+    const list = document.getElementById('debugSoundList');
+    list.innerHTML = '';
+    for (const s of DEBUG_SOUNDS) {
+      const btn = document.createElement('button');
+      btn.textContent = s.label;
+      btn.style.cssText = 'text-align:left; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:inherit; padding:6px 10px; border-radius:4px; cursor:pointer; font-family:inherit; font-size:11px;';
+      btn.addEventListener('click', () => {
+        if (!audioCtx) initAudio();
+        s.run();
+      });
+      list.appendChild(btn);
+    }
+  }
+  buildDebugPanel();
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'd' || e.key === 'D') {
+      const panel = document.getElementById('debugPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+
+  makeObjects(8);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
