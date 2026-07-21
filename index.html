@@ -63,10 +63,23 @@
     width: 200px;
   }
 
+  #modeSoundPanel {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
   .dev-panel {
-    top: 250px;
+    top: 16px;
     left: 16px;
     width: 230px;
+  }
+
+  #brandPanel {
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    min-width: 180px;
   }
 
   .row {
@@ -144,8 +157,39 @@
   }
 
   input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
-    accent-color: #ffffff;
+    height: 14px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 1.5px;
+    background: rgba(255,255,255,0.28);
+    border-radius: 1px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ffffff;
+    margin-top: -4.75px;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 1.5px;
+    background: rgba(255,255,255,0.28);
+    border-radius: 1px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border: none;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
   }
 
   button {
@@ -168,6 +212,12 @@
     background: rgba(255,255,255,0.9);
     border-color: rgba(255,255,255,0.9);
     color: #05070a;
+  }
+
+  #soundBtn, #mobileSoundBtn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    font-weight: 700;
   }
 
   #soundBtn.on, #mobileSoundBtn.on {
@@ -193,6 +243,40 @@
   }
 
   .ui-hidden .panel, .ui-hidden .donate-panel, .ui-hidden .corner-text { display: none; }
+
+  .welcome-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 24px;
+    background: var(--bg);
+    text-align: center;
+  }
+  .welcome-title {
+    max-width: 460px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  #welcomeSoundBtn {
+    padding: 12px 30px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.9);
+    color: #05070a;
+    font-weight: 700;
+  }
+  #welcomeSoundBtn:hover { background: #ffffff; }
+
+  .dice-icon {
+    vertical-align: -1.5px;
+    margin-right: 6px;
+  }
 
   .hide-ui-btn {
     position: absolute;
@@ -223,7 +307,7 @@
     position: absolute;
     bottom: 16px;
     right: 16px;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text-dim);
     line-height: 1.6;
     text-align: right;
@@ -233,87 +317,105 @@
     color: var(--text);
     text-decoration: none;
   }
-  .donate-panel .copy-btn {
+  .copy-btn {
     padding: 2px 8px;
     font-size: 9px;
     margin-left: 4px;
     vertical-align: middle;
   }
-  .donate-panel .copy-btn.copied { background: rgba(255,255,255,0.9); color: #05070a; }
+  .copy-btn.copied { background: rgba(255,255,255,0.9); color: #05070a; }
 
   .corner-text {
     position: absolute;
     bottom: 16px;
     left: 16px;
     max-width: 280px;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text-dim);
     line-height: 1.6;
   }
 
   .info-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    border: 1px solid var(--text-dim);
     color: var(--text-dim);
-    font-size: 9px;
-    font-style: italic;
+    font-style: normal;
     text-transform: none;
     cursor: pointer;
-    user-select: none;
-    vertical-align: middle;
   }
-  .info-icon:hover { border-color: var(--text); color: var(--text); }
+  .info-icon:hover { color: var(--text); }
 
   /* ---- mobile ---- */
-  .mobile-bar { display: none; }
-  .mobile-menu-btn { display: none; }
+  .mobile-menu-btn, .mobile-dropdown, .mobile-bottom-stack { display: none; }
 
   @media (max-width: 700px) {
-    .top-left:not(.dev-panel), .bottom, .donate-panel, .corner-text, .hide-ui-btn {
-      display: none;
+    /* desktop panels are fully excluded on mobile, no exceptions —
+       mobile has its own dedicated elements below instead of reusing these */
+    .top-left, .top-right, .bottom, .donate-panel, .corner-text, .hide-ui-btn {
+      display: none !important;
     }
-    body.mobile-menu-open .top-left:not(.dev-panel),
-    body.mobile-menu-open .bottom,
-    body.mobile-menu-open .donate-panel,
-    body.mobile-menu-open .corner-text,
-    body.mobile-menu-open .hide-ui-btn {
-      display: block;
-    }
-    body.mobile-menu-open .bottom { display: flex; flex-wrap: wrap; justify-content: center; }
-    .top-left #mobileTimerRow { display: none; }
-
-    .mobile-bar {
-      display: flex;
-      position: absolute;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      align-items: center;
-      gap: 10px;
-      z-index: 45;
-    }
-    .mobile-bar #mobileTimer {
-      font-size: 11px;
-      color: var(--text-dim);
-      min-width: 64px;
-      text-align: center;
-    }
-    .ui-hidden .mobile-bar { display: flex; } /* Sound + timer always visible per spec */
 
     .mobile-menu-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
+      position: fixed;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 36px;
       padding: 0;
       font-size: 16px;
+      z-index: 50;
     }
+
+    .mobile-dropdown {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: calc(58px + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(230px, 84vw);
+      z-index: 49;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      backdrop-filter: blur(6px);
+      font-size: 11px;
+      box-sizing: border-box;
+      max-height: calc(100vh - 90px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      overflow-y: auto;
+    }
+    body.mobile-menu-open .mobile-dropdown { display: flex; }
+    .mobile-dropdown .ctrl { min-width: 0; width: 100%; }
+
+    .mobile-bottom-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      position: fixed;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(300px, 90vw);
+      z-index: 45;
+      text-align: center;
+    }
+    .mobile-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .mobile-copyright {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .mobile-copyright a { color: var(--text); text-decoration: none; }
+    .mobile-timer { font-size: 11px; color: var(--text-dim); }
+    #mobileSoundBtn { min-width: 150px; }
   }
 </style>
 </head>
@@ -321,22 +423,25 @@
 
 <canvas id="scene"></canvas>
 
-<button class="hide-ui-btn" id="hideUiBtn">Hide UI</button>
-
-<div class="mobile-bar" id="mobileBar">
-  <button id="mobileSoundBtn">Sound: Off</button>
-  <span id="mobileTimer">00:00:00</span>
-  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-title">Welcome to Space Sound. This is an endless ambient background soundtrack created by flying space objects.</div>
+  <button id="welcomeSoundBtn">Enable Sound</button>
 </div>
 
-<div class="panel top-left" id="corePanel">
-  <div class="row" id="mobileTimerRow"><span>Space Sound</span><span class="val" id="statTimer">00:00:00</span></div>
+<div id="appUI" style="display:none;">
 
-  <div class="row" style="margin-top:14px; margin-bottom:6px;">
-    <span>mode <span class="info-icon" id="modeInfoBtn">i</span></span>
+<button class="hide-ui-btn" id="hideUiBtn">Hide UI</button>
+
+<div class="panel" id="brandPanel">
+  <div class="row" style="margin-bottom:0;"><span>Space Sound</span><span class="val" id="statTimer">00:00:00</span></div>
+</div>
+
+<div class="panel top-left" id="modeSoundPanel">
+  <div class="row" style="margin-bottom:6px;">
+    <span>mode <span class="info-icon" id="modeInfoBtn">(i)</span></span>
   </div>
   <div id="modeInfoText" style="display:none; font-size:9.5px; color:var(--text-dim); line-height:1.45; text-transform:none; margin-bottom:8px;">
-    Intersect — звук рождается, когда фигуры пересекаются друг с другом. Zone — звук рождается, когда фигура попадает в круг по центру экрана.
+    Intersect — sound triggers when shapes touch each other. Zone — sound triggers when a shape enters the circle at the center of the screen.
   </div>
   <div class="mode-toggle" style="display:flex; gap:6px;">
     <button id="modeIntersectBtn" class="mode-btn active" style="flex:1; padding:6px 4px; font-size:10px;">Intersect</button>
@@ -352,11 +457,11 @@
 
 <div class="panel top-left dev-panel dev-only" id="devPanel">
   <h2>Layers</h2>
-  <label class="layer-toggle"><input type="checkbox" id="layerTexture" checked>текстура</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerCreature" checked>существо</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerHarmony" checked>гармония</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerDrone" checked>дрон</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerPercussion" checked>перкуссия</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerTexture" checked>Texture</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerCreature" checked>Creature</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerHarmony" checked>Harmony</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerDrone" checked>Drone</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerPercussion" checked>Percussion</label>
 </div>
 
 <div class="panel top-right dev-only" id="logPanel">
@@ -366,8 +471,7 @@
 
 <div class="panel bottom" id="bottomPanel">
   <button id="soundBtn">Sound: Off</button>
-  <button id="toggleBtn">Pause</button>
-  <button id="reshuffleBtn">Reshuffle</button>
+  <button id="reshuffleBtn"><svg class="dice-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg>Reshuffle</button>
   <div class="ctrl">
     <label><span>Objects</span><span id="countLabel">8</span></label>
     <input type="range" id="countSlider" min="6" max="14" step="1" value="8">
@@ -382,8 +486,8 @@
   </div>
 </div>
 
-<div class="corner-text" id="descPanel">
-  Generative ambient soundscape — endless, ever-changing music from drifting shapes.
+<div class="corner-text" id="listenersPanel">
+  Space Listeners Online: <span id="listenersCount">—</span>
 </div>
 
 <div class="donate-panel" id="donatePanel">
@@ -391,10 +495,46 @@
   Support the project USDT TRC20 <button class="copy-btn" id="copyWalletBtn">Copy</button>
 </div>
 
+<!-- ===== mobile-only (≤700px) — separate dedicated elements, not reused desktop panels ===== -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+<div class="mobile-dropdown" id="mobileDropdown">
+  <div class="row" style="margin-bottom:6px;"><span>mode</span></div>
+  <div class="mode-toggle" style="display:flex; gap:6px;">
+    <button id="modeIntersectBtnM" class="mode-btn mode-btn-m active" style="flex:1; padding:6px 4px; font-size:10px;">Intersect</button>
+    <button id="modeZoneBtnM" class="mode-btn mode-btn-m" style="flex:1; padding:6px 4px; font-size:10px;">Zone</button>
+  </div>
+
+  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>sound</span></div>
+  <div class="theme-toggle" style="display:flex; gap:6px;">
+    <button data-theme="space" class="mode-btn theme-btn active" style="flex:1; padding:6px 4px; font-size:10px;">Space</button>
+    <button data-theme="earth" class="mode-btn theme-btn" style="flex:1; padding:6px 4px; font-size:10px;">Earth</button>
+  </div>
+
+  <div class="ctrl" style="margin-top:12px;">
+    <label><span>Objects</span><span id="countLabelM">8</span></label>
+    <input type="range" id="countSliderM" min="6" max="14" step="1" value="8">
+  </div>
+  <div class="ctrl" style="margin-top:10px;">
+    <label><span>Tempo</span><span id="tempoLabelM">1.0×</span></label>
+    <input type="range" id="tempoSliderM" min="100" max="400" step="10" value="100">
+  </div>
+</div>
+
+<div class="mobile-bottom-stack" id="mobileBottomStack">
+  <div class="mobile-desc">Space Listeners Online: <span id="listenersCountM">—</span></div>
+  <div class="mobile-copyright">Created by <a href="https://ramozov.pro" target="_blank" rel="noopener">Ramozov</a>. Support USDT TRC20 <button class="copy-btn" id="copyWalletBtnM">Copy</button></div>
+  <div class="mobile-timer" id="mobileTimer">00:00:00</div>
+  <button id="mobileSoundBtn">Sound: Off</button>
+</div>
+
 <div id="debugPanel" style="display:none; position:absolute; top:16px; left:50%; transform:translateX(-50%); width:320px; max-height:80vh; overflow-y:auto; background:rgba(8,10,12,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; font-family:inherit; font-size:11px; z-index:50;">
   <div style="color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Debug: sound list (press D to close)</div>
   <div id="debugSoundList" style="display:flex; flex-direction:column; gap:4px;"></div>
 </div>
+
+</div>
+<!-- /appUI -->
 
 <script>
 (function () {
@@ -464,16 +604,16 @@
   const PERCUSSION_KINDS = ['quick', 'walk', 'lazy', 'skip']; // same patterns both themes — only the timbre shifts (see triggerPercussionRun)
 
   const SHAPE_LAYER = { circle: 'texture', square: 'harmony', triangle: 'creature', bar: 'drone', diamond: 'percussion' };
-  const LAYER_LABEL = { texture: 'текстура', harmony: 'гармония', creature: 'существо', drone: 'дрон', percussion: 'перкуссия' };
+  const LAYER_LABEL = { texture: 'texture', harmony: 'harmony', creature: 'creature', drone: 'drone', percussion: 'percussion' };
   const KIND_LABEL = {
-    rain: 'дождь', wind: 'ветер', water: 'вода', sparkle: 'искры', shimmer: 'перезвон',
-    hum: 'гул', creek: 'ручей', grain: 'крупицы', gust: 'порыв',
-    pad: 'пэд', warm: 'тёплый', bloom: 'расцвет', root: 'корень', canopy: 'крона',
-    chirp: 'чирик', trill: 'трель', chatter: 'стрекот',
-    coo: 'воркование', rustle: 'шорох', sigh: 'вздох', cricket: 'сверчок',
-    quick: 'рывок', walk: 'шаг', lazy: 'лениво', skip: 'вприпрыжку',
-    pulse: 'пульс', swell: 'волна', heartbeat: 'сердцебиение', wander: 'блуждающий',
-    grove: 'роща', hollow: 'полость', core: 'ядро'
+    rain: 'rain', wind: 'wind', water: 'water', sparkle: 'sparkle', shimmer: 'shimmer',
+    hum: 'hum', creek: 'creek', grain: 'grain', gust: 'gust',
+    pad: 'pad', warm: 'warm', bloom: 'bloom', root: 'root', canopy: 'canopy',
+    chirp: 'chirp', trill: 'trill', chatter: 'chatter',
+    coo: 'coo', rustle: 'rustle', sigh: 'sigh', cricket: 'cricket',
+    quick: 'quick', walk: 'walk', lazy: 'lazy', skip: 'skip',
+    pulse: 'pulse', swell: 'swell', heartbeat: 'heartbeat', wander: 'wander',
+    grove: 'grove', hollow: 'hollow', core: 'core'
   };
 
   const TRAIL_LEN = 14;
@@ -574,7 +714,7 @@
         ? DRONE_KINDS[Math.floor(Math.random() * DRONE_KINDS.length)]
         : null;
 
-      // human-readable name for the events log, e.g. "текстура: голоса" —
+      // human-readable name for the events log, e.g. "texture: rain" —
       // so it's possible to tell which specific variant is playing
       const kindKey = this.textureKind || this.harmonyKind || this.creatureKind || this.percussionKind || this.droneKind;
       const layer = SHAPE_LAYER[this.shape];
@@ -886,7 +1026,7 @@
       const enterAt = 0.55, exitAt = 0.35;
       if (!o.zoneActive && presence > enterAt) {
         o.zoneActive = true;
-        addLog(`${o.soundName} вошёл в зону`);
+        addLog(`${o.soundName} entered the zone`);
         if (audioCtx) {
           if (soundLayers.creature && o.shape === 'triangle') triggerCreature(o.creatureKind);
           if (soundLayers.percussion && o.shape === 'diamond') triggerPercussionOrMelody(o);
@@ -932,6 +1072,8 @@
     for (const o of objects) { o.intersecting = false; o.presence = 0; o.zoneActive = false; }
     document.getElementById('modeIntersectBtn').classList.toggle('active', mode === 'intersect');
     document.getElementById('modeZoneBtn').classList.toggle('active', mode === 'zone');
+    document.getElementById('modeIntersectBtnM').classList.toggle('active', mode === 'intersect');
+    document.getElementById('modeZoneBtnM').classList.toggle('active', mode === 'zone');
   }
 
   function addLog(entry) {
@@ -1783,21 +1925,24 @@
     modeInfoText.style.display = modeInfoText.style.display === 'none' ? 'block' : 'none';
   });
 
-  const copyWalletBtn = document.getElementById('copyWalletBtn');
-  copyWalletBtn.addEventListener('click', async () => {
+  async function copyWallet(btn) {
     const address = 'TUzS6fz1rP9zok3s8yWSRKFZm7NgKT78go';
     try {
       await navigator.clipboard.writeText(address);
     } catch (e) {
       // clipboard API unavailable (e.g. insecure context) — fall back silently
     }
-    copyWalletBtn.textContent = 'Copied';
-    copyWalletBtn.classList.add('copied');
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
     setTimeout(() => {
-      copyWalletBtn.textContent = 'Copy';
-      copyWalletBtn.classList.remove('copied');
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
     }, 1500);
-  });
+  }
+  const copyWalletBtn = document.getElementById('copyWalletBtn');
+  copyWalletBtn.addEventListener('click', () => copyWallet(copyWalletBtn));
+  const copyWalletBtnM = document.getElementById('copyWalletBtnM');
+  copyWalletBtnM.addEventListener('click', () => copyWallet(copyWalletBtnM));
 
   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
   mobileMenuBtn.addEventListener('click', () => {
@@ -1841,6 +1986,8 @@
 
   document.getElementById('modeIntersectBtn').addEventListener('click', () => setMode('intersect'));
   document.getElementById('modeZoneBtn').addEventListener('click', () => setMode('zone'));
+  document.getElementById('modeIntersectBtnM').addEventListener('click', () => setMode('intersect'));
+  document.getElementById('modeZoneBtnM').addEventListener('click', () => setMode('zone'));
 
   document.querySelectorAll('.theme-btn').forEach(btn => {
     btn.addEventListener('click', () => setTheme(btn.dataset.theme));
@@ -1858,11 +2005,6 @@
     if (audioCtx && masterGain) masterGain.gain.setTargetAtTime(masterVolume, audioCtx.currentTime, 0.05);
   });
   document.getElementById('layerPercussion').addEventListener('change', e => { soundLayers.percussion = e.target.checked; });
-  const toggleBtn = document.getElementById('toggleBtn');
-  toggleBtn.addEventListener('click', () => {
-    running = !running;
-    toggleBtn.textContent = running ? 'Pause' : 'Resume';
-  });
 
   document.getElementById('reshuffleBtn').addEventListener('click', () => {
     makeObjects(objects.length);
@@ -1885,17 +2027,30 @@
   setInterval(updateSessionTimer, 1000);
 
   const countSlider = document.getElementById('countSlider');
-  countSlider.addEventListener('input', () => {
-    document.getElementById('countLabel').textContent = countSlider.value;
-    makeObjects(parseInt(countSlider.value, 10));
+  const countSliderM = document.getElementById('countSliderM');
+  function handleCountChange(val) {
+    document.getElementById('countLabel').textContent = val;
+    document.getElementById('countLabelM').textContent = val;
+    countSlider.value = val;
+    countSliderM.value = val;
+    makeObjects(parseInt(val, 10));
     activePairs = new Set();
-  });
+  }
+  countSlider.addEventListener('input', () => handleCountChange(countSlider.value));
+  countSliderM.addEventListener('input', () => handleCountChange(countSliderM.value));
 
   const tempoSlider = document.getElementById('tempoSlider');
-  tempoSlider.addEventListener('input', () => {
-    tempo = parseInt(tempoSlider.value, 10) / 100;
-    document.getElementById('tempoLabel').textContent = tempo.toFixed(1) + '×';
-  });
+  const tempoSliderM = document.getElementById('tempoSliderM');
+  function handleTempoChange(val) {
+    tempo = parseInt(val, 10) / 100;
+    const label = tempo.toFixed(1) + '×';
+    document.getElementById('tempoLabel').textContent = label;
+    document.getElementById('tempoLabelM').textContent = label;
+    tempoSlider.value = val;
+    tempoSliderM.value = val;
+  }
+  tempoSlider.addEventListener('input', () => handleTempoChange(tempoSlider.value));
+  tempoSliderM.addEventListener('input', () => handleTempoChange(tempoSliderM.value));
 
   // ---- main loop ----
   let lastTime = performance.now();
@@ -1972,48 +2127,48 @@
   }
 
   const DEBUG_SOUNDS = [
-    { label: 'Space — текстура: дождь', run: () => previewContinuousVoice(createTextureVoice('rain')) },
-    { label: 'Space — текстура: ветер', run: () => previewContinuousVoice(createTextureVoice('wind')) },
-    { label: 'Space — текстура: вода', run: () => previewContinuousVoice(createTextureVoice('water')) },
-    { label: 'Space — текстура: искры', run: () => { for (let i = 0; i < 8; i++) setTimeout(triggerSparkleGrain, i * 130); } },
-    { label: 'Space — текстура: перезвон', run: () => { for (let i = 0; i < 5; i++) setTimeout(triggerShimmerGrain, i * 700); } },
-    { label: 'Space — гармония: пэд', run: () => previewContinuousVoice(createHarmonyVoice('pad', getScaleFreq(4))) },
-    { label: 'Space — гармония: тёплый', run: () => previewContinuousVoice(createHarmonyVoice('warm', getScaleFreq(4))) },
-    { label: 'Space — гармония: расцвет', run: () => previewContinuousVoice(createHarmonyVoice('bloom', getScaleFreq(4))) },
-    { label: 'Space — существо: чирик', run: () => triggerCreature('chirp') },
-    { label: 'Space — существо: трель', run: () => triggerCreature('trill') },
-    { label: 'Space — существо: стрекот', run: () => triggerCreature('chatter') },
-    { label: 'Space — дрон: пульс', run: () => previewContinuousVoice(createDroneVoice('pulse')) },
-    { label: 'Space — дрон: волна', run: () => previewContinuousVoice(createDroneVoice('swell')) },
-    { label: 'Space — дрон: сердцебиение', run: () => previewContinuousVoice(createDroneVoice('heartbeat')) },
-    { label: 'Space — дрон: блуждающий', run: () => previewContinuousVoice(createDroneVoice('wander')) },
-    { label: 'Space — мелодия: soft', run: () => triggerMelodyPhrase('soft') },
-    { label: 'Space — мелодия: flute', run: () => triggerMelodyPhrase('flute') },
-    { label: 'Space — мелодия: marimba', run: () => triggerMelodyPhrase('marimba') },
-    { label: 'Space — мелодия: celeste', run: () => triggerMelodyPhrase('celeste') },
+    { label: 'Space — texture: rain', run: () => previewContinuousVoice(createTextureVoice('rain')) },
+    { label: 'Space — texture: wind', run: () => previewContinuousVoice(createTextureVoice('wind')) },
+    { label: 'Space — texture: water', run: () => previewContinuousVoice(createTextureVoice('water')) },
+    { label: 'Space — texture: sparkle', run: () => { for (let i = 0; i < 8; i++) setTimeout(triggerSparkleGrain, i * 130); } },
+    { label: 'Space — texture: shimmer', run: () => { for (let i = 0; i < 5; i++) setTimeout(triggerShimmerGrain, i * 700); } },
+    { label: 'Space — harmony: pad', run: () => previewContinuousVoice(createHarmonyVoice('pad', getScaleFreq(4))) },
+    { label: 'Space — harmony: warm', run: () => previewContinuousVoice(createHarmonyVoice('warm', getScaleFreq(4))) },
+    { label: 'Space — harmony: bloom', run: () => previewContinuousVoice(createHarmonyVoice('bloom', getScaleFreq(4))) },
+    { label: 'Space — creature: chirp', run: () => triggerCreature('chirp') },
+    { label: 'Space — creature: trill', run: () => triggerCreature('trill') },
+    { label: 'Space — creature: chatter', run: () => triggerCreature('chatter') },
+    { label: 'Space — drone: pulse', run: () => previewContinuousVoice(createDroneVoice('pulse')) },
+    { label: 'Space — drone: swell', run: () => previewContinuousVoice(createDroneVoice('swell')) },
+    { label: 'Space — drone: heartbeat', run: () => previewContinuousVoice(createDroneVoice('heartbeat')) },
+    { label: 'Space — drone: wander', run: () => previewContinuousVoice(createDroneVoice('wander')) },
+    { label: 'Space — melody: soft', run: () => triggerMelodyPhrase('soft') },
+    { label: 'Space — melody: flute', run: () => triggerMelodyPhrase('flute') },
+    { label: 'Space — melody: marimba', run: () => triggerMelodyPhrase('marimba') },
+    { label: 'Space — melody: celeste', run: () => triggerMelodyPhrase('celeste') },
 
-    { label: 'Earth — текстура: гул', run: () => previewContinuousVoice(createTextureVoice('hum')) },
-    { label: 'Earth — текстура: ручей', run: () => previewContinuousVoice(createTextureVoice('creek')) },
-    { label: 'Earth — текстура: крупицы', run: () => { for (let i = 0; i < 6; i++) setTimeout(triggerGrainTick, i * 260); } },
-    { label: 'Earth — текстура: порыв', run: () => triggerGustSwell() },
-    { label: 'Earth — гармония: корень', run: () => previewContinuousVoice(createHarmonyVoice('root', getScaleFreq(4))) },
-    { label: 'Earth — гармония: крона', run: () => previewContinuousVoice(createHarmonyVoice('canopy', getScaleFreq(4))) },
-    { label: 'Earth — существо: воркование', run: () => triggerCreature('coo') },
-    { label: 'Earth — существо: шорох', run: () => triggerCreature('rustle') },
-    { label: 'Earth — существо: вздох', run: () => triggerCreature('sigh') },
-    { label: 'Earth — существо: сверчок', run: () => triggerCreature('cricket') },
-    { label: 'Earth — дрон: роща', run: () => previewContinuousVoice(createDroneVoice('grove')) },
-    { label: 'Earth — дрон: полость', run: () => previewContinuousVoice(createDroneVoice('hollow')) },
-    { label: 'Earth — дрон: ядро', run: () => previewContinuousVoice(createDroneVoice('core')) },
-    { label: 'Earth — мелодия: kalimba', run: () => triggerMelodyPhrase('kalimba') },
-    { label: 'Earth — мелодия: breath', run: () => triggerMelodyPhrase('breath') },
+    { label: 'Earth — texture: hum', run: () => previewContinuousVoice(createTextureVoice('hum')) },
+    { label: 'Earth — texture: creek', run: () => previewContinuousVoice(createTextureVoice('creek')) },
+    { label: 'Earth — texture: grain', run: () => { for (let i = 0; i < 6; i++) setTimeout(triggerGrainTick, i * 260); } },
+    { label: 'Earth — texture: gust', run: () => triggerGustSwell() },
+    { label: 'Earth — harmony: root', run: () => previewContinuousVoice(createHarmonyVoice('root', getScaleFreq(4))) },
+    { label: 'Earth — harmony: canopy', run: () => previewContinuousVoice(createHarmonyVoice('canopy', getScaleFreq(4))) },
+    { label: 'Earth — creature: coo', run: () => triggerCreature('coo') },
+    { label: 'Earth — creature: rustle', run: () => triggerCreature('rustle') },
+    { label: 'Earth — creature: sigh', run: () => triggerCreature('sigh') },
+    { label: 'Earth — creature: cricket', run: () => triggerCreature('cricket') },
+    { label: 'Earth — drone: grove', run: () => previewContinuousVoice(createDroneVoice('grove')) },
+    { label: 'Earth — drone: hollow', run: () => previewContinuousVoice(createDroneVoice('hollow')) },
+    { label: 'Earth — drone: core', run: () => previewContinuousVoice(createDroneVoice('core')) },
+    { label: 'Earth — melody: kalimba', run: () => triggerMelodyPhrase('kalimba') },
+    { label: 'Earth — melody: breath', run: () => triggerMelodyPhrase('breath') },
 
-    { label: 'общее — перкуссия: рывок', run: () => triggerPercussionRun('quick') },
-    { label: 'общее — перкуссия: шаг', run: () => triggerPercussionRun('walk') },
-    { label: 'общее — перкуссия: лениво', run: () => triggerPercussionRun('lazy') },
-    { label: 'общее — перкуссия: вприпрыжку', run: () => triggerPercussionRun('skip') },
-    { label: 'общее — дрон: удар (кик)', run: () => triggerKickThump(getScaleFreq(0) / 2) },
-    { label: 'общее — капля дождя (деталь)', run: () => triggerDroplet() }
+    { label: 'General — percussion: quick', run: () => triggerPercussionRun('quick') },
+    { label: 'General — percussion: walk', run: () => triggerPercussionRun('walk') },
+    { label: 'General — percussion: lazy', run: () => triggerPercussionRun('lazy') },
+    { label: 'General — percussion: skip', run: () => triggerPercussionRun('skip') },
+    { label: 'General — drone: kick', run: () => triggerKickThump(getScaleFreq(0) / 2) },
+    { label: 'General — rain droplet (detail)', run: () => triggerDroplet() }
   ];
 
   function buildDebugPanel() {
@@ -2039,8 +2194,53 @@
     }
   });
 
-  makeObjects(8);
-  requestAnimationFrame(frame);
+  // simulated listeners-online counter — placeholder until a real backend
+  // (e.g. Firebase presence) is wired in; drifts naturally so it doesn't
+  // look static
+  let listenersValue = Math.floor(rand(2, 18));
+  function updateListeners() {
+    const step = (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
+    listenersValue = Math.max(2, Math.min(17, listenersValue + step));
+    const a = document.getElementById('listenersCount');
+    const b = document.getElementById('listenersCountM');
+    if (a) a.textContent = listenersValue;
+    if (b) b.textContent = listenersValue;
+    setTimeout(updateListeners, rand(5, 60) * 1000);
+  }
+  updateListeners();
+
+  let appStarted = false;
+  // keeps the screen from auto-locking while listening — same idea as
+  // video sites do during playback. Supported on modern mobile browsers
+  // (iOS 16.4+, current Android); silently does nothing where unsupported.
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (e) {
+      // not supported / permission denied — fail silently, non-critical
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    // the OS/browser auto-releases the lock when the tab is hidden —
+    // grab it again once the visitor comes back, if the app is running
+    if (document.visibilityState === 'visible' && appStarted) requestWakeLock();
+  });
+
+  function startApp() {
+    if (appStarted) return;
+    appStarted = true;
+    sessionStartTime = Date.now(); // the "session" starts when listening actually begins
+    toggleSound(); // creates/resumes the audio context, syncs Sound button state everywhere
+    makeObjects(8);
+    requestWakeLock();
+    document.getElementById('welcomeOverlay').style.display = 'none';
+    document.getElementById('appUI').style.display = 'block';
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('welcomeSoundBtn').addEventListener('click', startApp);
 })();
 </script>
 
