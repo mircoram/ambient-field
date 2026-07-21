@@ -11,9 +11,6 @@
     --border: rgba(255, 255, 255, 0.09);
     --text: rgba(235, 238, 240, 0.88);
     --text-dim: rgba(235, 238, 240, 0.42);
-    --texture: #6be8d4;
-    --creature: #ff8a65;
-    --harmony: #f2c14e;
     --accent: #e9edee;
   }
 
@@ -36,6 +33,7 @@
     inset: 0;
     width: 100%;
     height: 100%;
+    touch-action: none;
   }
 
   .panel {
@@ -62,6 +60,12 @@
   .top-left {
     top: 16px;
     left: 16px;
+    width: 200px;
+  }
+
+  .dev-panel {
+    top: 250px;
+    left: 16px;
     width: 230px;
   }
 
@@ -77,21 +81,6 @@
   .row span.val {
     color: var(--text);
     text-transform: none;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    color: var(--text-dim);
-    line-height: 1.35;
-  }
-
-  .swatch {
-    width: 12px;
-    height: 12px;
-    flex-shrink: 0;
   }
 
   .top-right {
@@ -156,7 +145,7 @@
 
   input[type="range"] {
     width: 100%;
-    accent-color: var(--texture);
+    accent-color: #ffffff;
   }
 
   button {
@@ -176,15 +165,15 @@
   button:hover { background: rgba(255,255,255,0.12); }
 
   .mode-btn.active {
-    background: rgba(255,255,255,0.16);
-    border-color: rgba(255,255,255,0.28);
-    color: var(--accent);
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.9);
+    color: #05070a;
   }
 
-  #soundBtn.on {
-    background: rgba(107, 232, 212, 0.18);
-    border-color: rgba(107, 232, 212, 0.4);
-    color: var(--texture);
+  #soundBtn.on, #mobileSoundBtn.on {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.9);
+    color: #05070a;
   }
 
   .layer-toggle {
@@ -200,25 +189,15 @@
   .layer-toggle input {
     margin: 0;
     cursor: pointer;
+    accent-color: #ffffff;
   }
 
-  .note {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    max-width: 230px;
-    font-size: 10.5px;
-    color: var(--text-dim);
-    line-height: 1.5;
-  }
-
-  .ui-hidden .panel, .ui-hidden .note { display: none; }
+  .ui-hidden .panel, .ui-hidden .donate-panel, .ui-hidden .corner-text { display: none; }
 
   .hide-ui-btn {
     position: absolute;
     top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 16px;
     z-index: 40;
     background: rgba(255,255,255,0.06);
     border: 1px solid var(--border);
@@ -233,6 +212,109 @@
   }
   .hide-ui-btn:hover { background: rgba(255,255,255,0.12); }
   .ui-hidden .hide-ui-btn { opacity: 0.35; }
+
+  /* dev-only: logo + events log + layer checkboxes — hidden from regular
+     users, toggled with the L key, desktop only (never on mobile) */
+  .dev-only { display: none; }
+  body.dev-mode .dev-only { display: block; }
+  body.dev-mode .top-right.dev-only { display: flex; }
+
+  .donate-panel {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    text-align: right;
+    pointer-events: auto;
+  }
+  .donate-panel a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  .donate-panel .copy-btn {
+    padding: 2px 8px;
+    font-size: 9px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .donate-panel .copy-btn.copied { background: rgba(255,255,255,0.9); color: #05070a; }
+
+  .corner-text {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    max-width: 280px;
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    font-size: 9px;
+    font-style: italic;
+    text-transform: none;
+    cursor: pointer;
+    user-select: none;
+    vertical-align: middle;
+  }
+  .info-icon:hover { border-color: var(--text); color: var(--text); }
+
+  /* ---- mobile ---- */
+  .mobile-bar { display: none; }
+  .mobile-menu-btn { display: none; }
+
+  @media (max-width: 700px) {
+    .top-left:not(.dev-panel), .bottom, .donate-panel, .corner-text, .hide-ui-btn {
+      display: none;
+    }
+    body.mobile-menu-open .top-left:not(.dev-panel),
+    body.mobile-menu-open .bottom,
+    body.mobile-menu-open .donate-panel,
+    body.mobile-menu-open .corner-text,
+    body.mobile-menu-open .hide-ui-btn {
+      display: block;
+    }
+    body.mobile-menu-open .bottom { display: flex; flex-wrap: wrap; justify-content: center; }
+    .top-left #mobileTimerRow { display: none; }
+
+    .mobile-bar {
+      display: flex;
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      align-items: center;
+      gap: 10px;
+      z-index: 45;
+    }
+    .mobile-bar #mobileTimer {
+      font-size: 11px;
+      color: var(--text-dim);
+      min-width: 64px;
+      text-align: center;
+    }
+    .ui-hidden .mobile-bar { display: flex; } /* Sound + timer always visible per spec */
+
+    .mobile-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      font-size: 16px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -241,48 +323,48 @@
 
 <button class="hide-ui-btn" id="hideUiBtn">Hide UI</button>
 
-<div class="panel top-left">
-  <h2>Field</h2>
-  <div class="row"><span>objects</span><span class="val" id="statCount">0</span></div>
-  <div class="row"><span id="statPairsLabel">active pairs</span><span class="val" id="statPairs">0</span></div>
-  <div class="row"><span>activity</span><span class="val" id="statActivity">0%</span></div>
+<div class="mobile-bar" id="mobileBar">
+  <button id="mobileSoundBtn">Sound: Off</button>
+  <span id="mobileTimer">00:00:00</span>
+  <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+</div>
 
-  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>trigger</span></div>
+<div class="panel top-left" id="corePanel">
+  <div class="row" id="mobileTimerRow"><span>Space Sound</span><span class="val" id="statTimer">00:00:00</span></div>
+
+  <div class="row" style="margin-top:14px; margin-bottom:6px;">
+    <span>mode <span class="info-icon" id="modeInfoBtn">i</span></span>
+  </div>
+  <div id="modeInfoText" style="display:none; font-size:9.5px; color:var(--text-dim); line-height:1.45; text-transform:none; margin-bottom:8px;">
+    Intersect — звук рождается, когда фигуры пересекаются друг с другом. Zone — звук рождается, когда фигура попадает в круг по центру экрана.
+  </div>
   <div class="mode-toggle" style="display:flex; gap:6px;">
     <button id="modeIntersectBtn" class="mode-btn active" style="flex:1; padding:6px 4px; font-size:10px;">Intersect</button>
     <button id="modeZoneBtn" class="mode-btn" style="flex:1; padding:6px 4px; font-size:10px;">Zone</button>
   </div>
 
-  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>theme</span></div>
+  <div class="row" style="margin-top:12px; margin-bottom:6px;"><span>sound</span></div>
   <div class="theme-toggle" style="display:flex; flex-wrap:wrap; gap:6px;">
-    <button data-theme="base" class="mode-btn theme-btn active" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">База</button>
-    <button data-theme="nature" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Природа</button>
-    <button data-theme="space" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Космос</button>
-    <button data-theme="city" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Город</button>
-    <button data-theme="dream" class="mode-btn theme-btn" style="flex:1 1 30%; padding:6px 4px; font-size:10px;">Сон</button>
+    <button data-theme="space" class="mode-btn theme-btn active" style="flex:1; padding:6px 4px; font-size:10px;">Space</button>
+    <button data-theme="earth" class="mode-btn theme-btn" style="flex:1; padding:6px 4px; font-size:10px;">Earth</button>
   </div>
-
-  <h2 style="margin-top:16px;">Legend (форма → звук)</h2>
-  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><circle id="legendSwatchTexture" cx="6" cy="6" r="5" fill="none" stroke="#6be8d4" stroke-width="1.4"/></svg>текстура — <span id="legendTextTexture">дождь / ветер / вода / голоса / искры / перезвон</span></div>
-  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><polygon id="legendSwatchCreature" points="6,1 11,10 1,10" fill="none" stroke="#ff8a65" stroke-width="1.4"/></svg>существо — <span id="legendTextCreature">чирик / трель / стрекот / вой / свист</span></div>
-  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><rect id="legendSwatchHarmony" x="1.5" y="1.5" width="9" height="9" fill="none" stroke="#f2c14e" stroke-width="1.4"/></svg>гармония — <span id="legendTextHarmony">пэд / тёплый / расцвет</span></div>
-  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><rect id="legendSwatchDrone" x="0.5" y="4.5" width="11" height="3" fill="none" stroke="#9aa0e8" stroke-width="1.2"/></svg>дрон — <span id="legendTextDrone">пульс / волна / сердцебиение / блуждающий</span></div>
-  <div class="legend-item"><svg class="swatch" viewBox="0 0 12 12"><polygon id="legendSwatchPercussion" points="6,1 10.5,6 6,11 1.5,6" fill="none" stroke="#ef6fa8" stroke-width="1.4"/></svg>перкуссия — короткий рифф из 2–5 нот</div>
-
-  <h2 style="margin-top:16px;">Layers</h2>
-  <label class="layer-toggle"><input type="checkbox" id="layerTexture" checked style="accent-color:#6be8d4;">текстура</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerCreature" checked style="accent-color:#ff8a65;">существо</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerHarmony" checked style="accent-color:#f2c14e;">гармония</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerDrone" checked style="accent-color:#9aa0e8;">дрон</label>
-  <label class="layer-toggle"><input type="checkbox" id="layerPercussion" checked style="accent-color:#ef6fa8;">перкуссия</label>
 </div>
 
-<div class="panel top-right">
+<div class="panel top-left dev-panel dev-only" id="devPanel">
+  <h2>Layers</h2>
+  <label class="layer-toggle"><input type="checkbox" id="layerTexture" checked>текстура</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerCreature" checked>существо</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerHarmony" checked>гармония</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerDrone" checked>дрон</label>
+  <label class="layer-toggle"><input type="checkbox" id="layerPercussion" checked>перкуссия</label>
+</div>
+
+<div class="panel top-right dev-only" id="logPanel">
   <h2>Events log</h2>
   <div id="log"></div>
 </div>
 
-<div class="panel bottom">
+<div class="panel bottom" id="bottomPanel">
   <button id="soundBtn">Sound: Off</button>
   <button id="toggleBtn">Pause</button>
   <button id="reshuffleBtn">Reshuffle</button>
@@ -300,8 +382,13 @@
   </div>
 </div>
 
-<div class="note">
-  Внизу справа — точка на маленьком круге: медленно вращающийся индикатор тональности (полный оборот ≈ 5 мин). Дрон теперь один за раз — это "якорь" с мягкой пульсацией. Иногда залетает мелодия подлиннее обычной перкуссии.
+<div class="corner-text" id="descPanel">
+  Generative ambient soundscape — endless, ever-changing music from drifting shapes.
+</div>
+
+<div class="donate-panel" id="donatePanel">
+  Created by <a href="https://ramozov.pro" target="_blank" rel="noopener">Ramozov</a>.<br>
+  Support the project USDT TRC20 <button class="copy-btn" id="copyWalletBtn">Copy</button>
 </div>
 
 <div id="debugPanel" style="display:none; position:absolute; top:16px; left:50%; transform:translateX(-50%); width:320px; max-height:80vh; overflow-y:auto; background:rgba(8,10,12,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:14px 16px; font-family:inherit; font-size:11px; z-index:50;">
@@ -335,93 +422,58 @@
   // colors, scale, and which kinds are available per layer. 'base' is
   // the exact current build, frozen, as the control/reference preset.
   const THEMES = {
-    base: {
-      label: 'База',
+    space: {
+      label: 'Space',
       colors: { circle: '#6be8d4', triangle: '#ff8a65', square: '#f2c14e', bar: '#9aa0e8', diamond: '#ef6fa8' },
       scale: [110, 123.47, 138.59, 164.81, 185.0, 220, 246.94, 277.18, 329.63, 369.99, 440],
       chordOffsets: [0, 2, 4, 5, -3],
-      textureContinuous: ['rain', 'wind', 'water', 'voices'],
+      textureContinuous: ['rain', 'wind', 'water'],
       textureGranular: ['sparkle', 'shimmer'],
       harmonyContinuous: ['pad', 'warm', 'bloom'],
-      creature: ['chirp', 'trill', 'chatter', 'howl', 'whistle'],
-      drone: ['pulse', 'swell', 'heartbeat', 'wander']
+      creature: ['chirp', 'trill', 'chatter'],
+      drone: ['pulse', 'swell', 'heartbeat', 'wander'],
+      melody: ['soft', 'flute', 'marimba', 'celeste']
     },
-    nature: {
-      label: 'Природа',
-      colors: { circle: '#7ed957', triangle: '#d9a066', square: '#f2c14e', bar: '#4a7c59', diamond: '#e8875a' },
+    earth: {
+      label: 'Earth',
+      colors: { circle: '#8bd4a8', triangle: '#c99a6b', square: '#e8c88a', bar: '#6b8f6f', diamond: '#d99b6c' },
       scale: [110, 123.47, 138.59, 164.81, 185.0, 220, 246.94, 277.18, 329.63, 369.99, 440],
       chordOffsets: [0, 2, 4, 5, -3],
-      textureContinuous: ['rain', 'wind', 'water'],
-      textureGranular: ['thunder'],
-      harmonyContinuous: ['pad', 'warm', 'bloom'],
-      creature: ['chirp', 'howl', 'whistle', 'cricket'],
-      drone: ['pulse', 'swell', 'heartbeat', 'wander']
-    },
-    space: {
-      label: 'Космос',
-      colors: { circle: '#8ecbff', triangle: '#b98eff', square: '#ffe08a', bar: '#4a5ba8', diamond: '#ff6f9c' },
-      // open/spacious intervals (4ths & 5ths, no thirds) — airier, less "cozy"
-      scale: [110, 146.83, 164.81, 220, 246.94, 293.66, 329.63, 440, 493.88, 587.33],
-      chordOffsets: [0, 2, 4, 5, -3],
-      textureContinuous: ['sub', 'voices'],
-      textureGranular: ['static', 'shimmer'],
-      harmonyContinuous: ['crystal', 'bloom'],
-      creature: ['blip', 'drift', 'whistle'],
-      drone: ['void', 'wander', 'swell']
-    },
-    city: {
-      label: 'Город',
-      colors: { circle: '#ffb454', triangle: '#ff5d5d', square: '#6ee7ff', bar: '#7a7f8c', diamond: '#d94fd1' },
-      // a couple of chromatic neighbor tones mixed in — grittier, less "clean"
-      scale: [110, 116.54, 138.59, 164.81, 174.61, 220, 233.08, 277.18, 329.63, 349.23],
-      chordOffsets: [0, 2, 4, 5, -3],
-      textureContinuous: ['traffic', 'voices'],
-      textureGranular: ['sparkle'],
-      harmonyContinuous: ['neon', 'pad'],
-      creature: ['honk', 'siren', 'chatter'],
-      drone: ['engine', 'pulse', 'heartbeat']
-    },
-    dream: {
-      label: 'Сон',
-      colors: { circle: '#c9b8ff', triangle: '#ffb8e6', square: '#b8f0e6', bar: '#8a7ca8', diamond: '#ffe8b8' },
-      // whole-tone scale — famously ambiguous/floaty, no strong home note
-      scale: [110, 123.47, 138.59, 155.56, 174.61, 196.0, 220, 246.94, 277.18, 311.13],
-      // wider, looser offsets — deliberately lets some tension through,
-      // this is the theme for testing how far the generation can drift
-      chordOffsets: [0, 1, 2, 3, 4, 5, 6, -1, -2],
-      textureContinuous: ['voices'],
-      textureGranular: ['reverse', 'shimmer'],
-      harmonyContinuous: ['cluster', 'bloom'],
-      creature: ['howl', 'trill', 'whistle'],
-      drone: ['haze', 'swell', 'wander']
+      textureContinuous: ['hum', 'creek'],
+      textureGranular: ['grain', 'gust'],
+      harmonyContinuous: ['root', 'canopy'],
+      creature: ['coo', 'rustle', 'sigh', 'cricket'],
+      drone: ['grove', 'hollow', 'core'],
+      melody: ['kalimba', 'breath']
     }
   };
 
-  let currentTheme = 'base';
-  let COLORS = { ...THEMES.base.colors };
-  let PENTATONIC = [...THEMES.base.scale];
-  let CHORD_OFFSETS = [...THEMES.base.chordOffsets];
-  let TEXTURE_CONTINUOUS_KINDS = [...THEMES.base.textureContinuous];
-  let TEXTURE_GRANULAR_KINDS = [...THEMES.base.textureGranular];
+  let currentTheme = 'space';
+  let COLORS = { ...THEMES.space.colors };
+  let PENTATONIC = [...THEMES.space.scale];
+  let CHORD_OFFSETS = [...THEMES.space.chordOffsets];
+  let TEXTURE_CONTINUOUS_KINDS = [...THEMES.space.textureContinuous];
+  let TEXTURE_GRANULAR_KINDS = [...THEMES.space.textureGranular];
   let TEXTURE_KINDS = [...TEXTURE_CONTINUOUS_KINDS, ...TEXTURE_GRANULAR_KINDS];
-  let HARMONY_CONTINUOUS_KINDS = [...THEMES.base.harmonyContinuous];
+  let HARMONY_CONTINUOUS_KINDS = [...THEMES.space.harmonyContinuous];
   let HARMONY_ONESHOT_KINDS = [];
   let HARMONY_KINDS = [...HARMONY_CONTINUOUS_KINDS, ...HARMONY_ONESHOT_KINDS];
-  let CREATURE_KINDS = [...THEMES.base.creature];
-  let DRONE_KINDS = [...THEMES.base.drone];
-  const PERCUSSION_KINDS = ['quick', 'walk', 'lazy', 'skip']; // shared across all themes — rhythm patterns aren't theme-bound
+  let CREATURE_KINDS = [...THEMES.space.creature];
+  let DRONE_KINDS = [...THEMES.space.drone];
+  let MELODY_INSTRUMENTS = [...THEMES.space.melody];
+  const PERCUSSION_KINDS = ['quick', 'walk', 'lazy', 'skip']; // same patterns both themes — only the timbre shifts (see triggerPercussionRun)
 
   const SHAPE_LAYER = { circle: 'texture', square: 'harmony', triangle: 'creature', bar: 'drone', diamond: 'percussion' };
   const LAYER_LABEL = { texture: 'текстура', harmony: 'гармония', creature: 'существо', drone: 'дрон', percussion: 'перкуссия' };
   const KIND_LABEL = {
-    rain: 'дождь', wind: 'ветер', water: 'вода', voices: 'голоса', sparkle: 'искры', shimmer: 'перезвон',
-    thunder: 'гром', sub: 'гул', static: 'помехи', traffic: 'трафик', reverse: 'реверс',
-    pad: 'пэд', warm: 'тёплый', bloom: 'расцвет', crystal: 'кристалл', neon: 'неон', cluster: 'кластер',
-    chirp: 'чирик', trill: 'трель', chatter: 'стрекот', howl: 'вой', whistle: 'свист',
-    cricket: 'сверчок', blip: 'блип', drift: 'дрейф', honk: 'гудок', siren: 'сирена',
+    rain: 'дождь', wind: 'ветер', water: 'вода', sparkle: 'искры', shimmer: 'перезвон',
+    hum: 'гул', creek: 'ручей', grain: 'крупицы', gust: 'порыв',
+    pad: 'пэд', warm: 'тёплый', bloom: 'расцвет', root: 'корень', canopy: 'крона',
+    chirp: 'чирик', trill: 'трель', chatter: 'стрекот',
+    coo: 'воркование', rustle: 'шорох', sigh: 'вздох', cricket: 'сверчок',
     quick: 'рывок', walk: 'шаг', lazy: 'лениво', skip: 'вприпрыжку',
-    pulse: 'пульс', swell: 'волна', heartbeat: 'сердцебиение', wander: 'блуждающий', void: 'пустота',
-    engine: 'мотор', haze: 'дымка'
+    pulse: 'пульс', swell: 'волна', heartbeat: 'сердцебиение', wander: 'блуждающий',
+    grove: 'роща', hollow: 'полость', core: 'ядро'
   };
 
   const TRAIL_LEN = 14;
@@ -466,6 +518,12 @@
     wait = Math.max(0, wait);
     return now + wait + rand(-0.012, 0.012);
   }
+
+  // resolution-independence: sizes below are tuned against an 800px
+  // reference (min of width/height). Multiplying by this ratio keeps the
+  // same *relative* object size — and therefore the same intersection
+  // frequency / density behavior — on any screen size or browser zoom.
+  function getRefScale() { return Math.min(W, H) / 800; }
 
   class SoundObject {
     constructor(id) {
@@ -571,7 +629,7 @@
       const scale = lerp(1.5, 0.45, this.z);
       const opacity = lerp(1, 0.3, this.z);
       const highlight = triggerMode === 'zone' ? this.presence : this.pulse;
-      const r = this.baseRadius * scale * (1 + highlight * 0.35);
+      const r = this.baseRadius * getRefScale() * scale * (1 + highlight * 0.35);
       // bar shapes are visually much wider than they are tall — give them a
       // matching (slightly conservative) hitbox so overlap feels honest.
       const hitR = this.shape === 'bar' ? r * 1.5 : r;
@@ -707,26 +765,6 @@
     ctx.restore();
   }
 
-  // small always-visible dial (independent of trigger mode) showing the
-  // same slow drift phase — the "invisible equalizer" made visible
-  function drawEqDial() {
-    const cx = W - 46, cy = H - 46, r = 20;
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    const angle = getDriftPhase() * Math.PI * 2 - Math.PI / 2;
-    const mx = cx + Math.cos(angle) * r;
-    const my = cy + Math.sin(angle) * r;
-    ctx.fillStyle = '#f2c14e';
-    ctx.beginPath();
-    ctx.arc(mx, my, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   function drawZonePull(o, presence) {
     if (presence < 0.12) return;
     const zc = getZoneCenter();
@@ -747,6 +785,7 @@
   let nextId = 0; // ever-increasing — replacement objects always get a fresh id
   let running = true;
   let tempo = 1.0;
+  let sessionStartTime = Date.now(); // resets on page load and on Reshuffle
   let activePairs = new Set();
   let logEntries = [];
   let triggerMode = 'intersect'; // 'intersect' | 'zone'
@@ -765,7 +804,6 @@
                       // must happen while `objects` still points at the old array
     objects = [];
     for (let i = 0; i < n; i++) objects.push(new SoundObject(nextId++));
-    document.getElementById('statCount').textContent = n;
     setupAudioForObjects();
   }
 
@@ -777,11 +815,12 @@
   function localDensity(o) {
     const p = o.screenParams();
     let count = 0;
+    const radius = 260 * getRefScale();
     for (const other of objects) {
       if (other === o) continue;
       const q = other.screenParams();
       const dx = p.sx - q.sx, dy = p.sy - q.sy;
-      if (Math.sqrt(dx * dx + dy * dy) < 260) count++;
+      if (Math.sqrt(dx * dx + dy * dy) < radius) count++;
     }
     return Math.min(1, count / 5);
   }
@@ -823,10 +862,6 @@
       }
     }
     activePairs = nowPairs;
-    document.getElementById('statPairs').textContent = activePairs.size;
-    const totalPossible = n * (n - 1) / 2;
-    const activity = totalPossible ? Math.round((activePairs.size / totalPossible) * 100) : 0;
-    document.getElementById('statActivity').textContent = activity + '%';
   }
 
   function updateZoneMode() {
@@ -861,9 +896,6 @@
       }
       if (o.zoneActive) activeCount++;
     }
-    document.getElementById('statPairs').textContent = activeCount;
-    const activity = objects.length ? Math.round((activeCount / objects.length) * 100) : 0;
-    document.getElementById('statActivity').textContent = activity + '%';
   }
 
   function setTheme(name) {
@@ -881,6 +913,7 @@
     HARMONY_KINDS = [...HARMONY_CONTINUOUS_KINDS, ...HARMONY_ONESHOT_KINDS];
     CREATURE_KINDS = [...t.creature];
     DRONE_KINDS = [...t.drone];
+    MELODY_INSTRUMENTS = [...t.melody];
 
     // theme-crossing state resets cleanly rather than carrying over
     droneRootIndex = 0;
@@ -889,16 +922,6 @@
     melodyPlaying = false;
 
     document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === name));
-
-    document.getElementById('legendSwatchTexture').setAttribute('stroke', COLORS.circle);
-    document.getElementById('legendSwatchCreature').setAttribute('stroke', COLORS.triangle);
-    document.getElementById('legendSwatchHarmony').setAttribute('stroke', COLORS.square);
-    document.getElementById('legendSwatchDrone').setAttribute('stroke', COLORS.bar);
-    document.getElementById('legendSwatchPercussion').setAttribute('stroke', COLORS.diamond);
-    document.getElementById('legendTextTexture').textContent = TEXTURE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
-    document.getElementById('legendTextCreature').textContent = CREATURE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
-    document.getElementById('legendTextHarmony').textContent = HARMONY_KINDS.map(k => KIND_LABEL[k]).join(' / ');
-    document.getElementById('legendTextDrone').textContent = DRONE_KINDS.map(k => KIND_LABEL[k]).join(' / ');
 
     makeObjects(objects.length || 8); // fresh field + audio under the new theme
   }
@@ -909,7 +932,6 @@
     for (const o of objects) { o.intersecting = false; o.presence = 0; o.zoneActive = false; }
     document.getElementById('modeIntersectBtn').classList.toggle('active', mode === 'intersect');
     document.getElementById('modeZoneBtn').classList.toggle('active', mode === 'zone');
-    document.getElementById('statPairsLabel').textContent = mode === 'zone' ? 'in zone' : 'active pairs';
   }
 
   function addLog(entry) {
@@ -957,7 +979,6 @@
 
     const filter = audioCtx.createBiquadFilter();
     let maxGain, lfoRate;
-    let formant2 = null; // only used by 'voices'
 
     if (kind === 'rain') {
       filter.type = 'bandpass';
@@ -971,32 +992,21 @@
       filter.Q.value = rand(2, 5);
       lfoRate = rand(0.08, 0.18);
       maxGain = rand(0.05, 0.09);
-    } else if (kind === 'voices') {
-      // two stacked bandpass filters approximate vowel-like formants —
-      // a distant murmur, not intelligible speech
-      filter.type = 'bandpass';
-      filter.frequency.value = rand(450, 750);
-      filter.Q.value = rand(3, 6);
-      formant2 = audioCtx.createBiquadFilter();
-      formant2.type = 'bandpass';
-      formant2.frequency.value = rand(1100, 1700);
-      formant2.Q.value = rand(3, 6);
-      lfoRate = rand(0.12, 0.28); // slow waver, like breathing/muttering
-      maxGain = rand(0.04, 0.075);
-    } else if (kind === 'sub') {
-      // deep, barely-there wash — space's sense of vast empty distance
+    } else if (kind === 'hum') {
+      // deep, barely-there wash — Earth's sense of ground/distance
       filter.type = 'lowpass';
       filter.frequency.value = rand(70, 160);
       filter.Q.value = rand(0.3, 0.7);
       lfoRate = rand(0.015, 0.03);
       maxGain = rand(0.05, 0.09);
-    } else if (kind === 'traffic') {
-      // steady urban hum — narrower and higher than 'wind', more "engine-ish"
-      filter.type = 'lowpass';
-      filter.frequency.value = rand(220, 450);
-      filter.Q.value = rand(0.8, 1.6);
-      lfoRate = rand(0.06, 0.12);
-      maxGain = rand(0.05, 0.09);
+    } else if (kind === 'creek') {
+      // lighter, livelier trickle than 'water' — lower Q (less resonant/
+      // tonal, more babbling), faster movement
+      filter.type = 'bandpass';
+      filter.frequency.value = rand(700, 1600);
+      filter.Q.value = rand(1.2, 2.4);
+      lfoRate = rand(0.2, 0.4);
+      maxGain = rand(0.045, 0.08);
     } else { // wind (default continuous kind)
       filter.type = 'lowpass';
       filter.frequency.value = rand(180, 650);
@@ -1016,15 +1026,14 @@
     gain.gain.value = 0;
 
     source.connect(filter);
-    if (formant2) { filter.connect(formant2); formant2.connect(gain); }
-    else { filter.connect(gain); }
+    filter.connect(gain);
     gain.connect(compressor);
     source.start();
     lfo.start();
 
     // shorter release than attack: fades out quicker so overlapping
     // circles don't stack into a permanent wash
-    return { source, filter, formant2, lfo, gain, maxGain, kind, tauAttack: 0.22, tauRelease: 0.13, lastDesired: 0 };
+    return { source, filter, lfo, gain, maxGain, kind, tauAttack: 0.22, tauRelease: 0.13, lastDesired: 0 };
   }
 
   // drone voice: low sustained pad for 'bar' shapes — the "anchor" sound.
@@ -1034,8 +1043,9 @@
     const freq = getChordFreq(0) / 2;
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'lowpass';
-    if (kind === 'void') filter.frequency.value = rand(120, 220); // lower, purer — space's emptiness
-    else if (kind === 'engine') filter.frequency.value = rand(300, 550); // grittier, more present
+    if (kind === 'core') filter.frequency.value = rand(120, 220);       // lower, purer — the deepest one
+    else if (kind === 'hollow') filter.frequency.value = rand(150, 300); // wide, empty, pure wash register
+    else if (kind === 'grove') filter.frequency.value = rand(260, 460); // a touch warmer/higher — gentler presence
     else filter.frequency.value = rand(220, 420);
     filter.Q.value = 0.4;
 
@@ -1044,11 +1054,7 @@
     filter.connect(gain);
     gain.connect(compressor);
 
-    const partials = kind === 'engine' ? [
-      { ratio: 1, type: 'sawtooth', level: 0.34 }, // a bit of grit for the mechanical character
-      { ratio: 1.005, type: 'sine', level: 0.32 },
-      { ratio: 2, type: 'sine', level: 0.1 }
-    ] : [
+    const partials = [
       { ratio: 1, type: 'sine', level: 0.48 },
       { ratio: 1.005, type: 'sine', level: 0.32 }, // slow beating, feels alive
       { ratio: 2, type: 'sine', level: 0.1 }        // faint octave overtone
@@ -1064,41 +1070,28 @@
       oGain.connect(filter);
       osc.start();
       oscs.push(osc);
-
-      if (kind === 'haze' && p.ratio === 1.005) {
-        // slow pitch wobble on the detuned partial — unstable, dreamlike
-        const wobble = audioCtx.createOscillator();
-        wobble.frequency.value = rand(0.04, 0.08);
-        const wobbleGain = audioCtx.createGain();
-        wobbleGain.gain.value = freq * 0.02;
-        wobble.connect(wobbleGain); wobbleGain.connect(osc.frequency);
-        wobble.start();
-        oscs.push(wobble);
-      }
     }
 
-    // per-kind character: 'swell' has no discrete beat at all (pure wash,
-    // deeper/slower gate), the others all keep a kick but differ in pattern
+    // per-kind character: kickless kinds are pure wash (deeper/slower gate),
+    // the others keep a gentle kick but differ in rate/rarity
     let gateRate, gateDepth, baseKickInterval, hasKick;
-    if (kind === 'swell') {
+    if (kind === 'swell' || kind === 'hollow') {
       gateRate = rand(0.08, 0.13); gateDepth = 0.55; baseKickInterval = 0; hasKick = false;
     } else if (kind === 'heartbeat') {
       gateRate = rand(0.22, 0.3); gateDepth = 0.4; baseKickInterval = rand(2.2, 3.2); hasKick = true;
     } else if (kind === 'wander') {
       gateRate = rand(0.24, 0.34); gateDepth = 0.42; baseKickInterval = rand(1.9, 2.7); hasKick = true;
-    } else if (kind === 'void') {
+    } else if (kind === 'core') {
       gateRate = rand(0.05, 0.09); gateDepth = 0.7; baseKickInterval = rand(4.5, 6.5); hasKick = true; // very rare, distant
-    } else if (kind === 'engine') {
-      gateRate = rand(0.5, 0.75); gateDepth = 0.28; baseKickInterval = rand(0.9, 1.3); hasKick = true; // fast, mechanical
-    } else if (kind === 'haze') {
-      gateRate = rand(0.06, 0.1); gateDepth = 0.6; baseKickInterval = 0; hasKick = false; // pure wash, like swell but wobblier
+    } else if (kind === 'grove') {
+      gateRate = rand(0.16, 0.22); gateDepth = 0.35; baseKickInterval = rand(2.6, 3.6); hasKick = true; // gentler, slower than 'pulse'
     } else { // pulse
       gateRate = rand(0.26, 0.36); gateDepth = 0.42; baseKickInterval = rand(1.7, 2.5); hasKick = true;
     }
 
     // slow attack/release: drones should swell and fade gradually.
     return {
-      oscs, filter, gain, maxGain: rand(0.08, 0.13),
+      oscs, filter, gain, maxGain: kind === 'grove' ? rand(0.06, 0.1) : rand(0.08, 0.13),
       tauAttack: 0.6, tauRelease: 0.5, lastDesired: 0,
       gatePhase: rand(0, 1), gateRate, gateDepth,
       rootFreq: freq, kind, hasKick,
@@ -1134,33 +1127,24 @@
         { ratio: 2, type: 'sine', level: 0.2 },
         { ratio: 1.5, type: 'sine', level: 0.16 }
       ];
-    } else if (kind === 'crystal') {
-      // bright, spacious, bell-like — space's sense of clarity and distance
-      filter.frequency.value = 3200;
-      filter.Q.value = 0.6;
+    } else if (kind === 'root') {
+      // very stable and grounded — single fundamental + quiet sub, no
+      // detune/movement at all, the calmest, most "settled" harmony voice
+      filter.frequency.value = 900;
+      filter.Q.value = 0.35;
       partials = [
-        { ratio: 1, type: 'sine', level: 0.36 },
-        { ratio: 2.01, type: 'sine', level: 0.22 },
-        { ratio: 3.99, type: 'sine', level: 0.12 }
+        { ratio: 0.5, type: 'sine', level: 0.26 },
+        { ratio: 1, type: 'sine', level: 0.46 }
       ];
-    } else if (kind === 'neon') {
-      // brighter, slightly electric — an electric-piano-ish edge for city
-      filter.frequency.value = 2600;
-      filter.Q.value = 0.7;
+    } else if (kind === 'canopy') {
+      // slow filter-opening swell like 'bloom', but lower and warmer —
+      // sunlight filtering through leaves rather than a bright cinematic bloom
+      filter.frequency.value = 380;
+      filter.Q.value = 0.45;
       partials = [
-        { ratio: 1, type: 'triangle', level: 0.4 },
-        { ratio: 2, type: 'sine', level: 0.18 },
-        { ratio: 1.008, type: 'triangle', level: 0.22 }
-      ];
-    } else if (kind === 'cluster') {
-      // deliberately close, non-chord ratios — beating/tension on purpose.
-      // This is dream's "how far can it drift" experiment.
-      filter.frequency.value = 1700;
-      filter.Q.value = 0.5;
-      partials = [
-        { ratio: 1, type: 'sine', level: 0.36 },
-        { ratio: 1.12, type: 'sine', level: 0.28 },
-        { ratio: 0.94, type: 'sine', level: 0.22 }
+        { ratio: 1, type: 'sine', level: 0.4 },
+        { ratio: 1.5, type: 'sine', level: 0.18 },
+        { ratio: 0.5, type: 'sine', level: 0.16 }
       ];
     } else { // pad
       filter.frequency.value = 1900;
@@ -1190,21 +1174,21 @@
       oscs.push(osc);
     }
 
-    if (kind === 'bloom') {
+    if (kind === 'bloom' || kind === 'canopy') {
       const filterLfo = audioCtx.createOscillator();
       filterLfo.frequency.value = rand(0.018, 0.028); // one slow sweep every ~35-55s
       const filterLfoGain = audioCtx.createGain();
-      filterLfoGain.gain.value = 950;
+      filterLfoGain.gain.value = kind === 'canopy' ? 500 : 950;
       filterLfo.connect(filterLfoGain);
       filterLfoGain.connect(filter.frequency);
       filterLfo.start();
       oscs.push(filterLfo); // shares the same start/stop lifecycle, teardown handles it
     }
 
-    const isSpacious = kind === 'crystal';
+    const isSpacious = kind === 'canopy' || kind === 'bloom';
     return {
       oscs, filter, gain, maxGain: rand(0.1, 0.18),
-      tauAttack: isSpacious ? 0.7 : 0.4, tauRelease: isSpacious ? 0.65 : 0.32, lastDesired: 0
+      tauAttack: isSpacious ? 0.6 : 0.4, tauRelease: isSpacious ? 0.55 : 0.32, lastDesired: 0
     };
   }
 
@@ -1273,25 +1257,8 @@
         src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
       }
 
-    } else if (kind === 'blip') {
-      // short synthetic bleep — robotic/alien, distinct from anything organic
-      const osc = audioCtx.createOscillator();
-      osc.type = 'square';
-      const f1 = rand(700, 1400), f2 = f1 * rand(1.4, 2.2);
-      osc.frequency.setValueAtTime(f1, now);
-      osc.frequency.setValueAtTime(f2, now + 0.06);
-      const lp = audioCtx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 2200;
-      const g = audioCtx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(rand(0.06, 0.11), now + 0.006);
-      g.gain.exponentialRampToValueAtTime(0.0006, now + 0.16);
-      osc.connect(lp); lp.connect(g); g.connect(compressor);
-      osc.start(now); osc.stop(now + 0.2);
-      osc.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
-
-    } else if (kind === 'drift') {
-      // long, slow, barely-moving detuned tone — a distant signal
+    } else if (kind === 'sigh') {
+      // long, slow, barely-moving detuned tone — Earth's soft distant call
       const osc = audioCtx.createOscillator();
       osc.type = 'sine';
       const base = rand(300, 500);
@@ -1309,35 +1276,37 @@
       osc.stop(now + dur + 0.1); osc2.stop(now + dur + 0.1);
       osc.onended = () => { try { g.disconnect(); } catch (e) {} };
 
-    } else if (kind === 'honk') {
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.value = rand(280, 380);
-      const lp = audioCtx.createBiquadFilter();
-      lp.type = 'lowpass'; lp.frequency.value = 1200;
-      const g = audioCtx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(rand(0.1, 0.16), now + 0.02);
-      g.gain.setValueAtTime(rand(0.1, 0.16), now + 0.12);
-      g.gain.exponentialRampToValueAtTime(0.0006, now + 0.22);
-      osc.connect(lp); lp.connect(g); g.connect(compressor);
-      osc.start(now); osc.stop(now + 0.3);
-      osc.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
-
-    } else if (kind === 'siren') {
+    } else if (kind === 'coo') {
+      // soft, rounded, dove-like — gentle downward glide, warm and short
       const osc = audioCtx.createOscillator();
       osc.type = 'sine';
-      const base = rand(500, 650);
+      const base = rand(350, 550);
+      const dur = rand(0.5, 0.9);
       osc.frequency.setValueAtTime(base, now);
-      osc.frequency.linearRampToValueAtTime(base * 1.5, now + 0.5);
-      osc.frequency.linearRampToValueAtTime(base, now + 1.0);
+      osc.frequency.linearRampToValueAtTime(base * rand(0.85, 0.95), now + dur * 0.6);
+      osc.frequency.linearRampToValueAtTime(base * rand(0.9, 1.0), now + dur);
       const g = audioCtx.createGain();
       g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(rand(0.06, 0.1), now + 0.1);
-      g.gain.exponentialRampToValueAtTime(0.0006, now + 1.1);
+      g.gain.linearRampToValueAtTime(rand(0.06, 0.11), now + dur * 0.25);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
       osc.connect(g); g.connect(compressor);
-      osc.start(now); osc.stop(now + 1.2);
+      osc.start(now); osc.stop(now + dur + 0.1);
       osc.onended = () => { try { g.disconnect(); } catch (e) {} };
+
+    } else if (kind === 'rustle') {
+      // soft, low, breathy noise burst — leaves/undergrowth, not clicky
+      const src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer;
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = rand(1200, 2400); bp.Q.value = rand(0.8, 1.6);
+      const g = audioCtx.createGain();
+      const dur = rand(0.25, 0.45);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(rand(0.04, 0.08), now + dur * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
+      src.connect(bp); bp.connect(g); g.connect(compressor);
+      src.start(now); src.stop(now + dur + 0.1);
+      src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
 
     } else if (kind === 'trill') {
       const osc = audioCtx.createOscillator();
@@ -1378,44 +1347,6 @@
         src.start(t); src.stop(t + 0.08);
         src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
       }
-
-    } else if (kind === 'howl') {
-      // long, slow pitch slide — a distant owl/animal call, not a quick blip
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      const startFreq = rand(300, 500);
-      const peakFreq = startFreq * rand(1.4, 1.9);
-      const endFreq = startFreq * rand(0.7, 0.9);
-      const dur = rand(1.1, 1.9);
-      osc.frequency.setValueAtTime(startFreq, now);
-      osc.frequency.linearRampToValueAtTime(peakFreq, now + dur * 0.4);
-      osc.frequency.linearRampToValueAtTime(endFreq, now + dur);
-      const g = audioCtx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(rand(0.09, 0.16), now + dur * 0.15);
-      g.gain.linearRampToValueAtTime(rand(0.06, 0.11), now + dur * 0.7);
-      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
-      osc.connect(g); g.connect(compressor);
-      osc.start(now); osc.stop(now + dur + 0.1);
-      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
-
-    } else if (kind === 'whistle') {
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      const base = rand(500, 900);
-      const peak = base * rand(1.3, 1.6);
-      const dur = rand(0.7, 1.3);
-      osc.frequency.setValueAtTime(base, now);
-      osc.frequency.linearRampToValueAtTime(peak, now + dur * 0.5);
-      osc.frequency.linearRampToValueAtTime(base * 0.9, now + dur);
-      const g = audioCtx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(rand(0.07, 0.13), now + dur * 0.2);
-      g.gain.linearRampToValueAtTime(rand(0.05, 0.09), now + dur * 0.75);
-      g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
-      osc.connect(g); g.connect(compressor);
-      osc.start(now); osc.stop(now + dur + 0.1);
-      osc.onended = () => { try { g.disconnect(); } catch (e) {} };
 
     } else { // chirp
       const osc = audioCtx.createOscillator();
@@ -1462,6 +1393,10 @@
 
     let idx = Math.floor(Math.random() * PENTATONIC.length);
     let t = now;
+    if (currentTheme === 'earth' && waveType === 'triangle') {
+      waveType = 'sine';
+      gainRange = [gainRange[0] * 0.85, gainRange[1] * 0.85]; // a touch gentler too
+    }
     for (let i = 0; i < noteCount; i++) {
       idx = Math.max(0, Math.min(PENTATONIC.length - 1, idx + Math.floor(rand(-2, 3))));
       const freq = getScaleFreq(idx) * octaveUp;
@@ -1484,7 +1419,7 @@
   // itself via melodyPlaying: never two melodies stacked at once.
   let melodyPlaying = false;
 
-  const MELODY_INSTRUMENTS = ['soft', 'flute', 'marimba', 'strings', 'celeste'];
+  // (MELODY_INSTRUMENTS now theme-driven — declared with the other theme state above)
 
   // one melody note, timbre depends on the instrument picked for the whole phrase
   function playMelodyNote(instrument, freq, t, dur) {
@@ -1526,24 +1461,45 @@
       osc.stop(t + dur); click.stop(t + 0.1);
       osc.onended = () => { try { g.disconnect(); gClick.disconnect(); } catch (e) {} };
 
-    } else if (instrument === 'strings') {
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.frequency.value = freq * 3.5; filter.Q.value = 0.6;
+    } else if (instrument === 'kalimba') {
+      // gentle plucked-metal mallet — simple decaying tone, not the harsh
+      // feedback-delay pluck we removed earlier, just a softer relative
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const click = audioCtx.createOscillator();
+      click.type = 'sine'; click.frequency.value = freq * 2.4; // metallic tine overtone, not a wooden 4th like marimba
       const g = audioCtx.createGain();
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(rand(0.08, 0.12), t + dur * 0.4); // slow bowed attack
-      g.gain.exponentialRampToValueAtTime(0.0006, t + dur + 0.1);
-      filter.connect(g); g.connect(compressor);
-      const oscs = [];
-      for (const ratio of [1, 1.006, 0.997]) {
-        const osc = audioCtx.createOscillator();
-        osc.type = 'sawtooth'; osc.frequency.value = freq * ratio;
-        const og = audioCtx.createGain(); og.gain.value = 0.33;
-        osc.connect(og); og.connect(filter);
-        osc.start(t); osc.stop(t + dur + 0.15);
-        oscs.push(osc);
-      }
-      oscs[0].onended = () => { try { g.disconnect(); filter.disconnect(); } catch (e) {} };
+      g.gain.linearRampToValueAtTime(rand(0.11, 0.17), t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur * 0.9);
+      const gClick = audioCtx.createGain();
+      gClick.gain.setValueAtTime(0.06, t);
+      gClick.gain.exponentialRampToValueAtTime(0.0004, t + 0.1);
+      osc.connect(g); click.connect(gClick);
+      g.connect(compressor); gClick.connect(compressor);
+      osc.start(t); click.start(t);
+      osc.stop(t + dur); click.stop(t + 0.15);
+      osc.onended = () => { try { g.disconnect(); gClick.disconnect(); } catch (e) {} };
+
+    } else if (instrument === 'breath') {
+      // soft airy tone — filtered noise blended under a quiet sine, breathy
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer;
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = freq * 1.5; bp.Q.value = 2;
+      const gNoise = audioCtx.createGain(); gNoise.gain.value = 0.35;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(rand(0.07, 0.11), t + dur * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + dur + 0.05);
+      osc.connect(g);
+      src.connect(bp); bp.connect(gNoise); gNoise.connect(g);
+      g.connect(compressor);
+      osc.start(t); src.start(t);
+      osc.stop(t + dur + 0.1); src.stop(t + dur + 0.1);
+      osc.onended = () => { try { g.disconnect(); bp.disconnect(); gNoise.disconnect(); } catch (e) {} };
 
     } else if (instrument === 'celeste') {
       const carrier = audioCtx.createOscillator();
@@ -1587,8 +1543,8 @@
     let idx = Math.max(0, Math.min(PENTATONIC.length - 1, droneRootIndex + CHORD_OFFSETS[Math.floor(Math.random() * CHORD_OFFSETS.length)]));
     let t = now;
     let totalDur = 0;
-    const quarter = (instrument === 'marimba' || instrument === 'celeste') ? rand(0.24, 0.34)
-      : (instrument === 'flute' || instrument === 'strings') ? rand(0.38, 0.5)
+    const quarter = (instrument === 'marimba' || instrument === 'celeste' || instrument === 'kalimba') ? rand(0.24, 0.34)
+      : (instrument === 'flute' || instrument === 'breath') ? rand(0.38, 0.5)
       : rand(0.34, 0.44);
 
     for (let i = 0; i < noteCount; i++) {
@@ -1614,54 +1570,36 @@
 
   // one-shot sparkle grain: a tiny, high, very short filtered noise tick —
   // many of these firing sparsely make up the whole 'sparkle' texture kind
-  // rare deep rumble — nature's distant thunder, much longer/lower than
-  // any other texture detail, and much rarer
-  function triggerThunderRumble() {
-    const now = audioCtx.currentTime;
-    const src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer;
-    const lp = audioCtx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = rand(90, 220); lp.Q.value = 0.6;
-    const g = audioCtx.createGain();
-    const dur = rand(1.8, 3.2);
-    g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(rand(0.08, 0.14), now + dur * 0.3);
-    g.gain.exponentialRampToValueAtTime(0.0006, now + dur);
-    src.connect(lp); lp.connect(g); g.connect(compressor);
-    src.start(now); src.stop(now + dur + 0.2);
-    src.onended = () => { try { lp.disconnect(); g.disconnect(); } catch (e) {} };
-  }
-
-  // sharp high crackle — space's radio static, much brighter/shorter than
-  // sparkle, more "signal noise" than "twinkle"
-  function triggerStaticCrackle() {
-    const now = audioCtx.currentTime;
-    const src = audioCtx.createBufferSource();
-    src.buffer = noiseBuffer;
-    const hp = audioCtx.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = rand(2000, 5000);
-    const g = audioCtx.createGain();
-    g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(rand(0.02, 0.05), now + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0005, now + rand(0.02, 0.05));
-    src.connect(hp); hp.connect(g); g.connect(compressor);
-    src.start(now); src.stop(now + 0.12);
-    src.onended = () => { try { hp.disconnect(); g.disconnect(); } catch (e) {} };
-  }
-
-  // swells IN rather than decaying out — a reverse-cymbal-like unusual
-  // envelope shape, dream's most experimental texture
-  function triggerReverseSwell() {
+  // soft, warm, mid-register tick — earthy and gentle, unlike sparkle's
+  // bright glassy click
+  function triggerGrainTick() {
     const now = audioCtx.currentTime;
     const src = audioCtx.createBufferSource();
     src.buffer = noiseBuffer;
     const bp = audioCtx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = rand(600, 1400); bp.Q.value = rand(1.5, 3);
+    bp.type = 'bandpass'; bp.frequency.value = rand(700, 1800); bp.Q.value = rand(2, 5);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(rand(0.025, 0.055), now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0006, now + rand(0.08, 0.16));
+    src.connect(bp); bp.connect(g); g.connect(compressor);
+    src.start(now); src.stop(now + 0.25);
+    src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+
+  // swells IN rather than decaying out — a soft gust building up, Earth's
+  // most unusual envelope shape but still gentle (quiet, mid register)
+  function triggerGustSwell() {
+    const now = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = rand(500, 1100); bp.Q.value = rand(1.3, 2.5);
     const g = audioCtx.createGain();
     const dur = rand(1.2, 2.0);
     g.gain.setValueAtTime(0.0006, now);
-    g.gain.exponentialRampToValueAtTime(rand(0.05, 0.09), now + dur * 0.92); // swells in
-    g.gain.linearRampToValueAtTime(0.0001, now + dur + 0.05); // then cuts off
+    g.gain.exponentialRampToValueAtTime(rand(0.04, 0.075), now + dur * 0.92); // swells in
+    g.gain.linearRampToValueAtTime(0.0001, now + dur + 0.05); // then eases off
     src.connect(bp); bp.connect(g); g.connect(compressor);
     src.start(now); src.stop(now + dur + 0.1);
     src.onended = () => { try { bp.disconnect(); g.disconnect(); } catch (e) {} };
@@ -1826,9 +1764,8 @@
       if (o.textureKind === 'rain' && s > 0.3 && Math.random() < dt * 1.1) triggerDroplet();
       if (o.textureKind === 'sparkle' && s > 0.2 && Math.random() < dt * (2 + s * 6)) triggerSparkleGrain();
       if (o.textureKind === 'shimmer' && s > 0.2 && Math.random() < dt * (0.5 + s * 1.2)) triggerShimmerGrain();
-      if (o.textureKind === 'thunder' && s > 0.25 && Math.random() < dt * 0.06) triggerThunderRumble();
-      if (o.textureKind === 'static' && s > 0.2 && Math.random() < dt * (1.2 + s * 3)) triggerStaticCrackle();
-      if (o.textureKind === 'reverse' && s > 0.2 && Math.random() < dt * 0.15) triggerReverseSwell();
+      if (o.textureKind === 'grain' && s > 0.2 && Math.random() < dt * (1.5 + s * 4)) triggerGrainTick();
+      if (o.textureKind === 'gust' && s > 0.2 && Math.random() < dt * 0.12) triggerGustSwell();
     }
   }
 
@@ -1839,9 +1776,46 @@
     hideUiBtn.textContent = document.body.classList.contains('ui-hidden') ? 'Show UI' : 'Hide UI';
   });
 
+  const modeInfoBtn = document.getElementById('modeInfoBtn');
+  const modeInfoText = document.getElementById('modeInfoText');
+  modeInfoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modeInfoText.style.display = modeInfoText.style.display === 'none' ? 'block' : 'none';
+  });
+
+  const copyWalletBtn = document.getElementById('copyWalletBtn');
+  copyWalletBtn.addEventListener('click', async () => {
+    const address = 'TUzS6fz1rP9zok3s8yWSRKFZm7NgKT78go';
+    try {
+      await navigator.clipboard.writeText(address);
+    } catch (e) {
+      // clipboard API unavailable (e.g. insecure context) — fall back silently
+    }
+    copyWalletBtn.textContent = 'Copied';
+    copyWalletBtn.classList.add('copied');
+    setTimeout(() => {
+      copyWalletBtn.textContent = 'Copy';
+      copyWalletBtn.classList.remove('copied');
+    }, 1500);
+  });
+
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  mobileMenuBtn.addEventListener('click', () => {
+    document.body.classList.toggle('mobile-menu-open');
+  });
+
+  // dev-only bundle (logo + events log + layer checkboxes) — for the
+  // creator only, never on mobile even if a keyboard is attached
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'l' && e.key !== 'L') return;
+    if (window.innerWidth < 700) return;
+    document.body.classList.toggle('dev-mode');
+  });
+
   const soundBtn = document.getElementById('soundBtn');
+  const mobileSoundBtn = document.getElementById('mobileSoundBtn');
   let soundOn = false;
-  soundBtn.addEventListener('click', () => {
+  function toggleSound() {
     if (!audioCtx) {
       initAudio();
       soundOn = true;
@@ -1852,9 +1826,14 @@
       audioCtx.resume();
       soundOn = true;
     }
-    soundBtn.textContent = soundOn ? 'Sound: On' : 'Sound: Off';
+    const label = soundOn ? 'Sound: On' : 'Sound: Off';
+    soundBtn.textContent = label;
     soundBtn.classList.toggle('on', soundOn);
-  });
+    mobileSoundBtn.textContent = label;
+    mobileSoundBtn.classList.toggle('on', soundOn);
+  }
+  soundBtn.addEventListener('click', toggleSound);
+  mobileSoundBtn.addEventListener('click', toggleSound);
 
   // No suspend-on-hide here: a background heartbeat (below, near the main
   // loop) keeps the simulation genuinely progressing while the tab is
@@ -1888,7 +1867,22 @@
   document.getElementById('reshuffleBtn').addEventListener('click', () => {
     makeObjects(objects.length);
     activePairs = new Set();
+    sessionStartTime = Date.now(); // per spec: reshuffle also resets the session timer
   });
+
+  function updateSessionTimer() {
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const hh = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+    const text = `${hh}:${mm}:${ss}`;
+    const desk = document.getElementById('statTimer');
+    const mobile = document.getElementById('mobileTimer');
+    if (desk) desk.textContent = text;
+    if (mobile) mobile.textContent = text;
+  }
+  updateSessionTimer();
+  setInterval(updateSessionTimer, 1000);
 
   const countSlider = document.getElementById('countSlider');
   countSlider.addEventListener('input', () => {
@@ -1908,7 +1902,6 @@
 
   function tick(dt) {
     ctx.clearRect(0, 0, W, H);
-    drawEqDial();
 
     if (running) {
       for (const o of objects) o.update(dt * tempo);
@@ -1979,50 +1972,48 @@
   }
 
   const DEBUG_SOUNDS = [
-    { label: 'текстура: дождь', run: () => previewContinuousVoice(createTextureVoice('rain')) },
-    { label: 'текстура: ветер', run: () => previewContinuousVoice(createTextureVoice('wind')) },
-    { label: 'текстура: вода', run: () => previewContinuousVoice(createTextureVoice('water')) },
-    { label: 'текстура: голоса', run: () => previewContinuousVoice(createTextureVoice('voices')) },
-    { label: 'текстура: искры', run: () => { for (let i = 0; i < 8; i++) setTimeout(triggerSparkleGrain, i * 130); } },
-    { label: 'текстура: перезвон', run: () => { for (let i = 0; i < 5; i++) setTimeout(triggerShimmerGrain, i * 700); } },
-    { label: 'гармония: пэд', run: () => previewContinuousVoice(createHarmonyVoice('pad', getScaleFreq(4))) },
-    { label: 'гармония: тёплый', run: () => previewContinuousVoice(createHarmonyVoice('warm', getScaleFreq(4))) },
-    { label: 'гармония: расцвет', run: () => previewContinuousVoice(createHarmonyVoice('bloom', getScaleFreq(4))) },
-    { label: 'дрон: пэд — пульс', run: () => previewContinuousVoice(createDroneVoice('pulse')) },
-    { label: 'дрон: пэд — волна', run: () => previewContinuousVoice(createDroneVoice('swell')) },
-    { label: 'дрон: пэд — сердцебиение', run: () => previewContinuousVoice(createDroneVoice('heartbeat')) },
-    { label: 'дрон: пэд — блуждающий', run: () => previewContinuousVoice(createDroneVoice('wander')) },
-    { label: 'дрон: удар (кик)', run: () => triggerKickThump(getScaleFreq(0) / 2) },
-    { label: 'существо: чирик', run: () => triggerCreature('chirp') },
-    { label: 'существо: трель', run: () => triggerCreature('trill') },
-    { label: 'существо: стрекот', run: () => triggerCreature('chatter') },
-    { label: 'существо: вой', run: () => triggerCreature('howl') },
-    { label: 'существо: свист', run: () => triggerCreature('whistle') },
-    { label: 'перкуссия: рывок', run: () => triggerPercussionRun('quick') },
-    { label: 'перкуссия: шаг', run: () => triggerPercussionRun('walk') },
-    { label: 'перкуссия: лениво', run: () => triggerPercussionRun('lazy') },
-    { label: 'перкуссия: вприпрыжку', run: () => triggerPercussionRun('skip') },
-    { label: 'мелодия: soft', run: () => triggerMelodyPhrase('soft') },
-    { label: 'мелодия: flute', run: () => triggerMelodyPhrase('flute') },
-    { label: 'мелодия: marimba', run: () => triggerMelodyPhrase('marimba') },
-    { label: 'мелодия: strings', run: () => triggerMelodyPhrase('strings') },
-    { label: 'мелодия: celeste', run: () => triggerMelodyPhrase('celeste') },
-    { label: 'капля дождя (деталь)', run: () => triggerDroplet() },
-    { label: '— природа: гром', run: () => triggerThunderRumble() },
-    { label: '— природа: сверчок', run: () => triggerCreature('cricket') },
-    { label: '— космос: помехи', run: () => triggerStaticCrackle() },
-    { label: '— космос: гармония кристалл', run: () => previewContinuousVoice(createHarmonyVoice('crystal', getScaleFreq(4))) },
-    { label: '— космос: дрон пустота', run: () => previewContinuousVoice(createDroneVoice('void')) },
-    { label: '— космос: существо блип', run: () => triggerCreature('blip') },
-    { label: '— космос: существо дрейф', run: () => triggerCreature('drift') },
-    { label: '— город: текстура трафик', run: () => previewContinuousVoice(createTextureVoice('traffic')) },
-    { label: '— город: гармония неон', run: () => previewContinuousVoice(createHarmonyVoice('neon', getScaleFreq(4))) },
-    { label: '— город: дрон мотор', run: () => previewContinuousVoice(createDroneVoice('engine')) },
-    { label: '— город: гудок', run: () => triggerCreature('honk') },
-    { label: '— город: сирена', run: () => triggerCreature('siren') },
-    { label: '— сон: реверс', run: () => triggerReverseSwell() },
-    { label: '— сон: гармония кластер', run: () => previewContinuousVoice(createHarmonyVoice('cluster', getScaleFreq(4))) },
-    { label: '— сон: дрон дымка', run: () => previewContinuousVoice(createDroneVoice('haze')) }
+    { label: 'Space — текстура: дождь', run: () => previewContinuousVoice(createTextureVoice('rain')) },
+    { label: 'Space — текстура: ветер', run: () => previewContinuousVoice(createTextureVoice('wind')) },
+    { label: 'Space — текстура: вода', run: () => previewContinuousVoice(createTextureVoice('water')) },
+    { label: 'Space — текстура: искры', run: () => { for (let i = 0; i < 8; i++) setTimeout(triggerSparkleGrain, i * 130); } },
+    { label: 'Space — текстура: перезвон', run: () => { for (let i = 0; i < 5; i++) setTimeout(triggerShimmerGrain, i * 700); } },
+    { label: 'Space — гармония: пэд', run: () => previewContinuousVoice(createHarmonyVoice('pad', getScaleFreq(4))) },
+    { label: 'Space — гармония: тёплый', run: () => previewContinuousVoice(createHarmonyVoice('warm', getScaleFreq(4))) },
+    { label: 'Space — гармония: расцвет', run: () => previewContinuousVoice(createHarmonyVoice('bloom', getScaleFreq(4))) },
+    { label: 'Space — существо: чирик', run: () => triggerCreature('chirp') },
+    { label: 'Space — существо: трель', run: () => triggerCreature('trill') },
+    { label: 'Space — существо: стрекот', run: () => triggerCreature('chatter') },
+    { label: 'Space — дрон: пульс', run: () => previewContinuousVoice(createDroneVoice('pulse')) },
+    { label: 'Space — дрон: волна', run: () => previewContinuousVoice(createDroneVoice('swell')) },
+    { label: 'Space — дрон: сердцебиение', run: () => previewContinuousVoice(createDroneVoice('heartbeat')) },
+    { label: 'Space — дрон: блуждающий', run: () => previewContinuousVoice(createDroneVoice('wander')) },
+    { label: 'Space — мелодия: soft', run: () => triggerMelodyPhrase('soft') },
+    { label: 'Space — мелодия: flute', run: () => triggerMelodyPhrase('flute') },
+    { label: 'Space — мелодия: marimba', run: () => triggerMelodyPhrase('marimba') },
+    { label: 'Space — мелодия: celeste', run: () => triggerMelodyPhrase('celeste') },
+
+    { label: 'Earth — текстура: гул', run: () => previewContinuousVoice(createTextureVoice('hum')) },
+    { label: 'Earth — текстура: ручей', run: () => previewContinuousVoice(createTextureVoice('creek')) },
+    { label: 'Earth — текстура: крупицы', run: () => { for (let i = 0; i < 6; i++) setTimeout(triggerGrainTick, i * 260); } },
+    { label: 'Earth — текстура: порыв', run: () => triggerGustSwell() },
+    { label: 'Earth — гармония: корень', run: () => previewContinuousVoice(createHarmonyVoice('root', getScaleFreq(4))) },
+    { label: 'Earth — гармония: крона', run: () => previewContinuousVoice(createHarmonyVoice('canopy', getScaleFreq(4))) },
+    { label: 'Earth — существо: воркование', run: () => triggerCreature('coo') },
+    { label: 'Earth — существо: шорох', run: () => triggerCreature('rustle') },
+    { label: 'Earth — существо: вздох', run: () => triggerCreature('sigh') },
+    { label: 'Earth — существо: сверчок', run: () => triggerCreature('cricket') },
+    { label: 'Earth — дрон: роща', run: () => previewContinuousVoice(createDroneVoice('grove')) },
+    { label: 'Earth — дрон: полость', run: () => previewContinuousVoice(createDroneVoice('hollow')) },
+    { label: 'Earth — дрон: ядро', run: () => previewContinuousVoice(createDroneVoice('core')) },
+    { label: 'Earth — мелодия: kalimba', run: () => triggerMelodyPhrase('kalimba') },
+    { label: 'Earth — мелодия: breath', run: () => triggerMelodyPhrase('breath') },
+
+    { label: 'общее — перкуссия: рывок', run: () => triggerPercussionRun('quick') },
+    { label: 'общее — перкуссия: шаг', run: () => triggerPercussionRun('walk') },
+    { label: 'общее — перкуссия: лениво', run: () => triggerPercussionRun('lazy') },
+    { label: 'общее — перкуссия: вприпрыжку', run: () => triggerPercussionRun('skip') },
+    { label: 'общее — дрон: удар (кик)', run: () => triggerKickThump(getScaleFreq(0) / 2) },
+    { label: 'общее — капля дождя (деталь)', run: () => triggerDroplet() }
   ];
 
   function buildDebugPanel() {
