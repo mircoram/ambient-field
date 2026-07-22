@@ -353,12 +353,20 @@
       display: none !important;
     }
 
+    /* brandPanel (Space Sound + timer) IS shown on mobile, top-center,
+       with the menu button positioned below it — not overlapping */
+    #brandPanel {
+      top: calc(16px + env(safe-area-inset-top));
+      font-size: 10px;
+      max-width: 92vw;
+    }
+
     .mobile-menu-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       position: fixed;
-      top: calc(14px + env(safe-area-inset-top));
+      top: calc(76px + env(safe-area-inset-top));
       left: 50%;
       transform: translateX(-50%);
       width: 36px;
@@ -372,7 +380,7 @@
       display: none;
       flex-direction: column;
       position: fixed;
-      top: calc(58px + env(safe-area-inset-top));
+      top: calc(120px + env(safe-area-inset-top));
       left: 50%;
       transform: translateX(-50%);
       width: min(230px, 84vw);
@@ -384,7 +392,7 @@
       backdrop-filter: blur(6px);
       font-size: 11px;
       box-sizing: border-box;
-      max-height: calc(100vh - 90px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(100vh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       overflow-y: auto;
     }
     body.mobile-menu-open .mobile-dropdown { display: flex; }
@@ -396,7 +404,7 @@
       align-items: center;
       gap: 7px;
       position: fixed;
-      bottom: calc(16px + env(safe-area-inset-bottom));
+      bottom: calc(70px + env(safe-area-inset-bottom)); /* clear of the browser's bottom bar */
       left: 50%;
       transform: translateX(-50%);
       width: min(300px, 90vw);
@@ -414,7 +422,7 @@
       line-height: 1.5;
     }
     .mobile-copyright a { color: var(--text); text-decoration: none; }
-    .mobile-timer { font-size: 11px; color: var(--text-dim); }
+    .mobile-copyright .no-wrap { white-space: nowrap; }
     #mobileSoundBtn { min-width: 150px; }
   }
 </style>
@@ -523,8 +531,7 @@
 
 <div class="mobile-bottom-stack" id="mobileBottomStack">
   <div class="mobile-desc">Space Listeners Online: <span id="listenersCountM">—</span></div>
-  <div class="mobile-copyright">Created by <a href="https://ramozov.pro" target="_blank" rel="noopener">Ramozov</a>. Support USDT TRC20 <button class="copy-btn" id="copyWalletBtnM">Copy</button></div>
-  <div class="mobile-timer" id="mobileTimer">00:00:00</div>
+  <div class="mobile-copyright">Created by <a href="https://ramozov.pro" target="_blank" rel="noopener">Ramozov</a>. Support USDT <span class="no-wrap">TRC20 <button class="copy-btn" id="copyWalletBtnM">Copy</button></span></div>
   <button id="mobileSoundBtn">Sound: Off</button>
 </div>
 
@@ -866,7 +873,7 @@
   }
 
   function getZoneCenter() { return { x: W / 2, y: H / 2 }; }
-  function getZoneRadiusPx() { return H * 0.25; } // diameter = 50% of screen height, always
+  function getZoneRadiusPx() { return Math.min(W, H) * 0.25; } // scales with the constraining dimension — never oversized on narrow (mobile) or short (wide desktop) windows
 
   function drawZoneCircle() {
     const zc = getZoneCenter(), zr = getZoneRadiusPx();
@@ -2019,9 +2026,7 @@
     const ss = String(elapsed % 60).padStart(2, '0');
     const text = `${hh}:${mm}:${ss}`;
     const desk = document.getElementById('statTimer');
-    const mobile = document.getElementById('mobileTimer');
     if (desk) desk.textContent = text;
-    if (mobile) mobile.textContent = text;
   }
   updateSessionTimer();
   setInterval(updateSessionTimer, 1000);
@@ -2214,6 +2219,29 @@
   // video sites do during playback. Supported on modern mobile browsers
   // (iOS 16.4+, current Android); silently does nothing where unsupported.
   let wakeLock = null;
+  // fallback for when the Wake Lock API is unavailable or blocked (e.g. an
+  // iframe embed without the right Permissions-Policy, or older iOS) — a
+  // tiny invisible looping muted video, the classic "nosleep" trick that
+  // Safari specifically honors for video (unlike Web Audio playback alone)
+  const NOSLEEP_VIDEO_SRC = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAARnbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAA+gAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAA5F0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAA+gAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAIAAAACAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAPoAAAEAAABAAAAAAMJbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAyAAAAMgBVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAACtG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAnRzdGJsAAAAwHN0c2QAAAAAAAAAAQAAALBhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAIAAgBIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAANmF2Y0MBZAAK/+EAGWdkAAqs2V+IiMBEAAADAAQAAAMAyDxIllgBAAZo6+PLIsD9+PgAAAAAEHBhc3AAAAABAAAAAQAAABRidHJ0AAAAAAAAIGgAACBoAAAAGHN0dHMAAAAAAAAAAQAAABkAAAIAAAAAFHN0c3MAAAAAAAAAAQAAAAEAAADYY3R0cwAAAAAAAAAZAAAAAQAABAAAAAABAAAKAAAAAAEAAAQAAAAAAQAAAAAAAAABAAACAAAAAAEAAAoAAAAAAQAABAAAAAABAAAAAAAAAAEAAAIAAAAAAQAACgAAAAABAAAEAAAAAAEAAAAAAAAAAQAAAgAAAAABAAAKAAAAAAEAAAQAAAAAAQAAAAAAAAABAAACAAAAAAEAAAoAAAAAAQAABAAAAAABAAAAAAAAAAEAAAIAAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAAZAAAAAQAAAHhzdHN6AAAAAAAAAAAAAAAZAAACxQAAAAwAAAAMAAAADAAAAAwAAAASAAAADgAAAAwAAAAMAAAAEgAAAA4AAAAMAAAADAAAABIAAAAOAAAADAAAAAwAAAASAAAADgAAAAwAAAAMAAAAEgAAAA4AAAAMAAAADAAAABRzdGNvAAAAAAAAAAEAAASXAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY2MC4xNi4xMDAAAAAIZnJlZQAABBVtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NCByMzEwOCAzMWUxOWY5IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyMyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAD2WIhAA7//73Tr8Cm1TCYQAAAAhBmiRsQ7/+4AAAAAhBnkJ4hf/BgQAAAAgBnmF0Qr/EgAAAAAgBnmNqQr/EgQAAAA5BmmhJqEFomUwId/+4QAAAAApBnoZFESwv/8GBAAAACAGepXRCv8SBAAAACAGep2pCv8SAAAAADkGarEmoQWyZTAh3//7gAAAACkGeykUVLC//wYEAAAAIAZ7pdEK/xIAAAAAIAZ7rakK/xIAAAAAOQZrwSahBbJlMCG///uEAAAAKQZ8ORRUsL//BgQAAAAgBny10Qr/EgQAAAAgBny9qQr/EgAAAAA5BmzRJqEFsmUwIZ/++4AAAAAApBn1JFFSwv/8GBAAAACAGfcXRCv8SAAAAACAGfc2pCv8SAAAAADkGbeEmoQWyZTAhX//7BAAAACkGflkUVLC//wYAAAAAIAZ+1dEK/xIEAAAAIAZ+3akK/xIEAA==';
+
+  let noSleepVideo = null;
+  function startNoSleepVideo() {
+    if (!noSleepVideo) {
+      noSleepVideo = document.createElement('video');
+      noSleepVideo.muted = true;
+      noSleepVideo.loop = true;
+      noSleepVideo.setAttribute('muted', '');
+      noSleepVideo.setAttribute('loop', '');
+      noSleepVideo.setAttribute('playsinline', '');
+      noSleepVideo.setAttribute('webkit-playsinline', '');
+      noSleepVideo.style.cssText = 'position:fixed; top:0; left:0; width:1px; height:1px; opacity:0.01; pointer-events:none;';
+      noSleepVideo.src = NOSLEEP_VIDEO_SRC;
+      document.body.appendChild(noSleepVideo);
+    }
+    noSleepVideo.play().catch(() => {}); // ignore — Wake Lock API may already be handling it
+  }
+
   async function requestWakeLock() {
     try {
       if ('wakeLock' in navigator) {
@@ -2222,6 +2250,7 @@
     } catch (e) {
       // not supported / permission denied — fail silently, non-critical
     }
+    startNoSleepVideo(); // belt-and-suspenders fallback, runs alongside the API either way
   }
   document.addEventListener('visibilitychange', () => {
     // the OS/browser auto-releases the lock when the tab is hidden —
